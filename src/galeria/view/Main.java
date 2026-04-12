@@ -55,9 +55,11 @@ public class Main {
             System.out.println("[ERROR] Ya existe un usuario con ese correo.");
             return;
         }
+        
+        String claveEncriptada = "ENC_" + clave.hashCode();
 
         int nuevoId = admin.getListaUsuarios().size() + 1;
-        Usuario nuevo = new Usuario(nuevoId, nombre, apellido, correo, clave,
+        Usuario nuevo = new Usuario(nuevoId, nombre, apellido, correo, claveEncriptada,
                                     "", false, new ArrayList<>(), new ArrayList<>());
         admin.registrarUsuario(nuevo);
         bitacora.add("Usuario registrado: " + nombre + " " + apellido);
