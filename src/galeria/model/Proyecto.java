@@ -20,10 +20,11 @@ public class Proyecto {
 	private Materia materia;
 	private Semestre semestre;
 	private Categoria categoria;
+	private List<Valoracion> listaValoraciones = new ArrayList<>();
 	public Proyecto(int idProyecto, String titulo, String resumen, String archivoURL, String portadaURL,
 			int cantidadVistas, int cantidadGuardados, Date fechaSubida, List<Autor> listaAutores,
 			List<Recurso> listaRecursos, Facultad facultad, Programa programa, Materia materia, Semestre semestre,
-			Categoria categoria) {
+			Categoria categoria, List<Valoracion> listaValoraciones) {
 		super();
 		this.idProyecto = idProyecto;
 		this.titulo = titulo;
@@ -40,6 +41,7 @@ public class Proyecto {
 		this.materia = materia;
 		this.semestre = semestre;
 		this.categoria = categoria;
+		this.setListaValoraciones(listaValoraciones);
 	}
 	public int getIdProyecto() {
 		return idProyecto;
@@ -132,11 +134,27 @@ public class Proyecto {
 		this.categoria = categoria;
 	}
 	
+	public List<Valoracion> getListaValoraciones() {
+		return listaValoraciones;
+	}
+	public void setListaValoraciones(List<Valoracion> listaValoraciones) {
+		this.listaValoraciones = listaValoraciones;
+	}
+	
 	public void registrarVista() {
+		this.cantidadVistas++;
+	}
+	
+	public void agregarValoracion(Valoracion v) {
+	    listaValoraciones.add(v);
 	}
 	
 	public float valoracionPromedio() {
-		return 0.0f;
+	    if (listaValoraciones.isEmpty()) return 0.0f;
+	    int suma = 0;
+	    for (Valoracion v : listaValoraciones)
+	        suma += v.getPuntuacion();
+	    return (float) suma / listaValoraciones.size();
 	}
 	
 	public boolean esDestacado() {
@@ -169,5 +187,6 @@ public class Proyecto {
 	
 	public void descargarArchivo() {
 	}
+
 	
 }

@@ -2,23 +2,452 @@ package galeria.view;
 
 import galeria.controller.*;
 import galeria.model.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class Main {
 
+    static Scanner sc       = new Scanner(System.in);
+    static ControladorGaleria galeria = new ControladorGaleria();
+    static ControladorAdmin   admin   = new ControladorAdmin();
+    static ControladorLanding landing = new ControladorLanding(galeria);
+
+    // Registro de acciones para el resumen final
+    static List<String> bitacora = new ArrayList<>();
+
     public static void main(String[] args) {
 
-        // ════════════════════════════════════════════════
-        //  SETUP: instanciar controladores
-        // ════════════════════════════════════════════════
-        ControladorGaleria galeria  = new ControladorGaleria();
-        ControladorAdmin   admin    = new ControladorAdmin();
-        ControladorLanding landing  = new ControladorLanding(galeria);
+        cargarDatosDePrueba();
 
-        separador("1. PARAMETROS ACADEMICOS (admin)");
+        boolean ejecutando = true;
+        while (ejecutando) {
+            System.out.println("\n╔══════════════════════════════════════╗");
+            System.out.println("   REPOSITORIO DE PROYECTOS INTEGRADORES");
+            System.out.println("╚══════════════════════════════════════╝");
+            System.out.println("  [1] Registrarse");
+            System.out.println("  [2] Iniciar sesion");
+            System.out.println("  [3] Salir");
+            System.out.print("  Opcion: ");
+            int op = leerInt();
 
+            switch (op) {
+                case 1: registrarse();        break;
+                case 2: iniciarSesion();      break;
+                case 3: ejecutando = false;   break;
+                default: System.out.println("[ERROR] Opcion invalida.");
+            }
+        }
+
+        mostrarResumenFinal();
+        sc.close();
+    }
+
+    // ════════════════════════════════════════════════
+    //  REGISTRO
+    // ════════════════════════════════════════════════
+    static void registrarse() {
+        System.out.println("\n-- REGISTRO DE NUEVO USUARIO --");
+        System.out.print("Nombre    : "); String nombre   = sc.nextLine();
+        System.out.print("Apellido  : "); String apellido = sc.nextLine();
+        System.out.print("Correo    : "); String correo   = sc.nextLine();
+        System.out.print("Clave     : "); String clave    = sc.nextLine();
+
+        if (admin.buscarUsuarioPorCorreo(correo) != null) {
+            System.out.println("[ERROR] Ya existe un usuario con ese correo.");
+            return;
+        }
+
+        int nuevoId = admin.getListaUsuarios().size() + 1;
+        Usuario nuevo = new Usuario(nuevoId, nombre, apellido, correo, clave,
+                                    "", false, new ArrayList<>(), new ArrayList<>());
+        admin.registrarUsuario(nuevo);
+        bitacora.add("Usuario registrado: " + nombre + " " + apellido);
+    }
+
+    // ════════════════════════════════════════════════
+    //  INICIO DE SESION
+    // ════════════════════════════════════════════════
+    static void iniciarSesion() {
+        System.out.println("\n-- INICIAR SESION --");
+        System.out.print("Correo: "); String correo = sc.nextLine();
+        System.out.print("Clave : "); String clave  = sc.nextLine();
+
+        Usuario u = admin.iniciarSesion(correo, clave);
+        if (u == null) return;
+
+        bitacora.add("Sesion iniciada: " + u.getNombre() + " (admin=" + u.getEsAdmin() + ")");
+
+        if (u.getEsAdmin()) {
+            menuAdmin(u);
+        } else {
+            menuUsuario(u);
+        }
+    }
+
+    // ════════════════════════════════════════════════
+    //  MENU USUARIO NORMAL
+    // ════════════════════════════════════════════════
+    static void menuUsuario(Usuario u) {
+        boolean activo = true;
+        while (activo) {
+            System.out.println("\n╔══════════════════════════════════════╗");
+            System.out.println("   Hola, " + u.getNombre() + " | MENU USUARIO");
+            System.out.println("╚══════════════════════════════════════╝");
+            System.out.println("  [1] Ver landing (proyectos destacados)");
+            System.out.println("  [2] Ver catalogo completo");
+            System.out.println("  [3] Filtrar proyectos");
+            System.out.println("  [4] Ver detalle de un proyecto");
+            System.out.println("  [5] Guardar proyecto");
+            System.out.println("  [6] Ver mis guardados");
+            System.out.println("  [7] Eliminar un guardado");
+            System.out.println("  [8] Valorar un proyecto");
+            System.out.println("  [9] Ver mi perfil");
+            System.out.println("  [10] Editar mi cuenta");
+            System.out.println("  [11] Eliminar mi cuenta");
+            System.out.println("  [0] Cerrar sesion");
+            System.out.print("  Opcion: ");
+            int op = leerInt();
+
+            switch (op) {
+                case 1:  landing.mostrarLanding();                       bitacora.add(u.getNombre() + " vio el landing.");           break;
+                case 2:  mostrarCatalogo();                              bitacora.add(u.getNombre() + " vio el catalogo.");          break;
+                case 3:  filtrarProyectos(u);                                                                                        break;
+                case 4:  verDetalleProyecto(u);                                                                                      break;
+                case 5:  guardarProyecto(u);                                                                                         break;
+                case 6:  verMisGuardados(u);                             bitacora.add(u.getNombre() + " vio sus guardados.");        break;
+                case 7:  eliminarGuardado(u);                                                                                        break;
+                case 8:  valorarProyecto(u);                                                                                         break;
+                case 9:  u.verPerfil();                                  bitacora.add(u.getNombre() + " vio su perfil.");            break;
+                case 10: editarCuenta(u);                                                                                            break;
+                case 11:
+                    u.eliminarMiCuenta();
+                    bitacora.add(u.getNombre() + " elimino su cuenta.");
+                    activo = false;
+                    break;
+                case 0:
+                    System.out.println("[OK] Sesion cerrada.");
+                    bitacora.add(u.getNombre() + " cerro sesion.");
+                    activo = false;
+                    break;
+                default: System.out.println("[ERROR] Opcion invalida.");
+            }
+        }
+    }
+
+    // ════════════════════════════════════════════════
+    //  MENU ADMINISTRADOR
+    // ════════════════════════════════════════════════
+    static void menuAdmin(Usuario u) {
+        boolean activo = true;
+        while (activo) {
+            System.out.println("\n╔══════════════════════════════════════╗");
+            System.out.println("   MENU ADMINISTRADOR | " + u.getNombre());
+            System.out.println("╚══════════════════════════════════════╝");
+            System.out.println("  -- Proyectos --");
+            System.out.println("  [1] Agregar proyecto");
+            System.out.println("  [2] Editar proyecto");
+            System.out.println("  [3] Eliminar proyecto");
+            System.out.println("  [4] Ver catalogo");
+            System.out.println("  -- Parametros academicos --");
+            System.out.println("  [5] Gestionar facultades");
+            System.out.println("  [6] Gestionar programas");
+            System.out.println("  [7] Gestionar materias");
+            System.out.println("  [8] Gestionar semestres");
+            System.out.println("  [9] Gestionar categorias");
+            System.out.println("  -- Usuarios --");
+            System.out.println("  [10] Ver lista de usuarios");
+            System.out.println("  [11] Cambiar estado admin");
+            System.out.println("  [12] Eliminar usuario");
+            System.out.println("  -- Landing --");
+            System.out.println("  [13] Ver landing");
+            System.out.println("  [0]  Cerrar sesion");
+            System.out.print("  Opcion: ");
+            int op = leerInt();
+
+            switch (op) {
+                case 1:  agregarProyecto();                                              bitacora.add("Admin agrego un proyecto.");          break;
+                case 2:  editarProyecto();                                               bitacora.add("Admin edito un proyecto.");           break;
+                case 3:  eliminarProyecto();                                             bitacora.add("Admin elimino un proyecto.");         break;
+                case 4:  mostrarCatalogo();                                                                                                  break;
+                case 5:  menuFacultades();                                                                                                   break;
+                case 6:  menuProgramas();                                                                                                    break;
+                case 7:  menuMaterias();                                                                                                     break;
+                case 8:  menuSemestres();                                                                                                    break;
+                case 9:  menuCategorias();                                                                                                   break;
+                case 10: admin.mostrarListaUsuarios();                                   bitacora.add("Admin vio lista de usuarios.");       break;
+                case 11: cambiarAdmin();                                                 bitacora.add("Admin cambio estado de admin.");      break;
+                case 12: eliminarUsuario();                                              bitacora.add("Admin elimino un usuario.");          break;
+                case 13: landing.mostrarLanding();                                       bitacora.add("Admin vio el landing.");              break;
+                case 0:
+                    System.out.println("[OK] Sesion cerrada.");
+                    bitacora.add("Admin " + u.getNombre() + " cerro sesion.");
+                    activo = false;
+                    break;
+                default: System.out.println("[ERROR] Opcion invalida.");
+            }
+        }
+    }
+
+    // ════════════════════════════════════════════════
+    //  ACCIONES DE USUARIO
+    // ════════════════════════════════════════════════
+    static void mostrarCatalogo() {
+        List<Proyecto> lista = galeria.consultarCatalogo();
+        if (lista.isEmpty()) { System.out.println("  (sin proyectos)"); return; }
+        System.out.println("\n-- CATALOGO --");
+        for (Proyecto p : lista)
+            System.out.println("  [" + p.getIdProyecto() + "] " + p.getTitulo()
+                + " | Vistas: " + p.getCantidadVistas()
+                + " | Rating: " + String.format("%.1f", p.valoracionPromedio())
+                + " | Destacado: " + (p.esDestacado() ? "Si" : "No"));
+    }
+
+    static void filtrarProyectos(Usuario u) {
+        System.out.println("\n-- FILTRAR PROYECTOS --");
+        System.out.println("Deja en blanco para ignorar un filtro.");
+        System.out.print("ID Facultad  : "); Integer idFac = leerIntOpcional();
+        System.out.print("ID Programa  : "); Integer idPro = leerIntOpcional();
+        System.out.print("ID Materia   : "); Integer idMat = leerIntOpcional();
+        System.out.print("ID Semestre  : "); Integer idSem = leerIntOpcional();
+        System.out.print("ID Categoria : "); Integer idCat = leerIntOpcional();
+        System.out.print("Texto buscar : "); String texto  = sc.nextLine();
+
+        FiltroProyecto filtro = new FiltroProyecto(idFac, idPro, idMat, idSem, idCat,
+                                                    texto.isEmpty() ? null : texto, null);
+        List<Proyecto> resultado = galeria.filtrarProyectos(filtro);
+        System.out.println("Resultados: " + resultado.size());
+        for (Proyecto p : resultado)
+            System.out.println("  [" + p.getIdProyecto() + "] " + p.getTitulo());
+        bitacora.add(u.getNombre() + " filtro proyectos. Resultados: " + resultado.size());
+    }
+
+    static void verDetalleProyecto(Usuario u) {
+        mostrarCatalogo();
+        System.out.print("ID del proyecto a ver: ");
+        int id = leerInt();
+        Proyecto p = galeria.buscarProyectoPorId(id);
+        if (p == null) { System.out.println("[ERROR] Proyecto no encontrado."); return; }
+        p.visualizarDetalle();
+        u.registrarVista(p);
+        bitacora.add(u.getNombre() + " vio detalle de: " + p.getTitulo());
+    }
+
+    static void guardarProyecto(Usuario u) {
+        mostrarCatalogo();
+        System.out.print("ID del proyecto a guardar: ");
+        int id = leerInt();
+        Proyecto p = galeria.buscarProyectoPorId(id);
+        if (p == null) { System.out.println("[ERROR] Proyecto no encontrado."); return; }
+        u.guardarProyecto(p);
+        bitacora.add(u.getNombre() + " guardo: " + p.getTitulo());
+    }
+
+    static void verMisGuardados(Usuario u) {
+        List<Guardado> lista = u.getListaGuardados();
+        if (lista.isEmpty()) { System.out.println("  No tienes proyectos guardados."); return; }
+        System.out.println("\n-- MIS GUARDADOS --");
+        for (Guardado g : lista)
+            System.out.println("  [" + g.getIdGuardado() + "] " + g.getProyecto().getTitulo()
+                               + " | " + g.getFechaGuardado());
+    }
+
+    static void eliminarGuardado(Usuario u) {
+        verMisGuardados(u);
+        if (u.getListaGuardados().isEmpty()) return;
+        System.out.print("ID del proyecto a eliminar de guardados: ");
+        int id = leerInt();
+        u.eliminarProyecto(id);
+        bitacora.add(u.getNombre() + " elimino guardado del proyecto ID: " + id);
+    }
+
+    static void valorarProyecto(Usuario u) {
+        mostrarCatalogo();
+        System.out.print("ID del proyecto a valorar: ");
+        int id = leerInt();
+        Proyecto p = galeria.buscarProyectoPorId(id);
+        if (p == null) { System.out.println("[ERROR] Proyecto no encontrado."); return; }
+        System.out.print("Puntuacion (1-5): ");
+        int puntuacion = leerInt();
+        u.valorarProyecto(p, puntuacion);
+        bitacora.add(u.getNombre() + " valoro '" + p.getTitulo() + "' con " + puntuacion + "/5");
+    }
+
+    static void editarCuenta(Usuario u) {
+        System.out.println("\n-- EDITAR MI CUENTA --");
+        System.out.print("Nuevo nombre   (Enter para no cambiar): "); String nombre   = sc.nextLine();
+        System.out.print("Nuevo apellido (Enter para no cambiar): "); String apellido = sc.nextLine();
+        System.out.print("Nuevo correo   (Enter para no cambiar): "); String correo   = sc.nextLine();
+        System.out.print("Nueva clave    (Enter para no cambiar): "); String clave    = sc.nextLine();
+        if (!nombre.isEmpty())   u.setNombre(nombre);
+        if (!apellido.isEmpty()) u.setApellido(apellido);
+        if (!correo.isEmpty())   u.setCorreo(correo);
+        if (!clave.isEmpty())    u.setClave(clave);
+        System.out.println("[OK] Cuenta actualizada.");
+        bitacora.add(u.getNombre() + " edito su cuenta.");
+    }
+
+    // ════════════════════════════════════════════════
+    //  ACCIONES DE ADMIN — PROYECTOS
+    // ════════════════════════════════════════════════
+    static void agregarProyecto() {
+        System.out.println("\n-- AGREGAR PROYECTO --");
+        System.out.print("Titulo  : "); String titulo  = sc.nextLine();
+        System.out.print("Resumen : "); String resumen = sc.nextLine();
+        System.out.print("URL archivo: "); String url  = sc.nextLine();
+
+        mostrarLista("Facultades",  galeria.listarFacultades(),  f -> "[" + f.getIdFacultad()  + "] " + f.getNombreFacultad());
+        System.out.print("ID Facultad : "); int idFac = leerInt();
+
+        mostrarLista("Programas",   galeria.listarProgramas(),   p -> "[" + p.getIdPrograma()  + "] " + p.getNombrePrograma());
+        System.out.print("ID Programa : "); int idPro = leerInt();
+
+        mostrarLista("Materias",    galeria.listarMaterias(),    m -> "[" + m.getIdMateria()   + "] " + m.getNombreMateria());
+        System.out.print("ID Materia  : "); int idMat = leerInt();
+
+        mostrarLista("Semestres",   galeria.listarSemestres(),   s -> "[" + s.getIdSemestre()  + "] " + s.getAnio() + "-" + s.getPeriodo());
+        System.out.print("ID Semestre : "); int idSem = leerInt();
+
+        mostrarLista("Categorias",  galeria.listarCategorias(),  c -> "[" + c.getIdCategoria() + "] " + c.getNombreCategoria());
+        System.out.print("ID Categoria: "); int idCat = leerInt();
+
+        Facultad  fac = buscarEnLista(galeria.listarFacultades(),  f -> f.getIdFacultad()  == idFac);
+        Programa  pro = buscarEnLista(galeria.listarProgramas(),   p -> p.getIdPrograma()  == idPro);
+        Materia   mat = buscarEnLista(galeria.listarMaterias(),    m -> m.getIdMateria()   == idMat);
+        Semestre  sem = buscarEnLista(galeria.listarSemestres(),   s -> s.getIdSemestre()  == idSem);
+        Categoria cat = buscarEnLista(galeria.listarCategorias(),  c -> c.getIdCategoria() == idCat);
+
+        int nuevoId = galeria.consultarCatalogo().size() + 101;
+        Proyecto nuevo = new Proyecto(nuevoId, titulo, resumen, url, "",
+                                       0, 0, new Date(),
+                                       new ArrayList<>(), new ArrayList<>(),
+                                       fac, pro, mat, sem, cat, new ArrayList<>());
+        galeria.agregarProyecto(nuevo);
+    }
+
+    static void editarProyecto() {
+        mostrarCatalogo();
+        System.out.print("ID del proyecto a editar: ");
+        int id = leerInt();
+        Proyecto p = galeria.buscarProyectoPorId(id);
+        if (p == null) { System.out.println("[ERROR] No encontrado."); return; }
+        System.out.print("Nuevo titulo  (Enter para no cambiar): "); String titulo  = sc.nextLine();
+        System.out.print("Nuevo resumen (Enter para no cambiar): "); String resumen = sc.nextLine();
+        System.out.print("Nueva URL     (Enter para no cambiar): "); String url     = sc.nextLine();
+        if (!titulo.isEmpty())  p.setTitulo(titulo);
+        if (!resumen.isEmpty()) p.setResumen(resumen);
+        if (!url.isEmpty())     p.setArchivoURL(url);
+        System.out.println("[OK] Proyecto actualizado.");
+    }
+
+    static void eliminarProyecto() {
+        mostrarCatalogo();
+        System.out.print("ID del proyecto a eliminar: ");
+        int id = leerInt();
+        galeria.eliminarProyecto(id);
+    }
+
+    // ════════════════════════════════════════════════
+    //  ACCIONES DE ADMIN — PARAMETROS
+    // ════════════════════════════════════════════════
+    static void menuFacultades() {
+        System.out.println("\n-- FACULTADES --");
+        System.out.println("  [1] Agregar  [2] Editar  [3] Eliminar  [4] Listar");
+        System.out.print("  Opcion: ");
+        switch (leerInt()) {
+            case 1: System.out.print("Nombre: "); galeria.agregarFacultad(sc.nextLine());                                                 break;
+            case 2: System.out.print("ID: "); int id=leerInt(); System.out.print("Nuevo nombre: "); galeria.editarFacultad(id, sc.nextLine()); break;
+            case 3: System.out.print("ID a eliminar: "); galeria.eliminarFacultad(leerInt());                                             break;
+            case 4: galeria.listarFacultades().forEach(f -> System.out.println("  " + f.getIdFacultad() + " - " + f.getNombreFacultad())); break;
+        }
+    }
+
+    static void menuProgramas() {
+        System.out.println("\n-- PROGRAMAS --");
+        System.out.println("  [1] Agregar  [2] Editar  [3] Eliminar  [4] Listar");
+        System.out.print("  Opcion: ");
+        switch (leerInt()) {
+            case 1: System.out.print("Nombre: "); String n=sc.nextLine(); System.out.print("ID Facultad: "); galeria.agregarPrograma(n, leerInt()); break;
+            case 2: System.out.print("ID: "); int id=leerInt(); System.out.print("Nuevo nombre: "); galeria.editarPrograma(id, sc.nextLine());       break;
+            case 3: System.out.print("ID a eliminar: "); galeria.eliminarPrograma(leerInt());                                                         break;
+            case 4: galeria.listarProgramas().forEach(p -> System.out.println("  " + p.getIdPrograma() + " - " + p.getNombrePrograma()));            break;
+        }
+    }
+
+    static void menuMaterias() {
+        System.out.println("\n-- MATERIAS --");
+        System.out.println("  [1] Agregar  [2] Editar  [3] Eliminar  [4] Listar");
+        System.out.print("  Opcion: ");
+        switch (leerInt()) {
+            case 1: System.out.print("Nombre: "); String n=sc.nextLine(); System.out.print("ID Programa: "); galeria.agregarMateria(n, leerInt()); break;
+            case 2: System.out.print("ID: "); int id=leerInt(); System.out.print("Nuevo nombre: "); galeria.editarMateria(id, sc.nextLine());      break;
+            case 3: System.out.print("ID a eliminar: "); galeria.eliminarMateria(leerInt());                                                        break;
+            case 4: galeria.listarMaterias().forEach(m -> System.out.println("  " + m.getIdMateria() + " - " + m.getNombreMateria()));             break;
+        }
+    }
+
+    static void menuSemestres() {
+        System.out.println("\n-- SEMESTRES --");
+        System.out.println("  [1] Agregar  [2] Editar  [3] Eliminar  [4] Listar");
+        System.out.print("  Opcion: ");
+        switch (leerInt()) {
+            case 1: System.out.print("Anio: "); int a=leerInt(); System.out.print("Periodo (1 o 2): "); int per=leerInt(); System.out.print("ID Materia: "); galeria.agregarSemestre(a, per, leerInt()); break;
+            case 2: System.out.print("ID: "); int id=leerInt(); System.out.print("Nuevo anio: "); int na=leerInt(); System.out.print("Nuevo periodo: "); galeria.editarSemestre(id, na, leerInt());        break;
+            case 3: System.out.print("ID a eliminar: "); galeria.eliminarSemestre(leerInt());                                                                                                                break;
+            case 4: galeria.listarSemestres().forEach(s -> System.out.println("  " + s.getIdSemestre() + " - " + s.getAnio() + "-" + s.getPeriodo()));                                                      break;
+        }
+    }
+
+    static void menuCategorias() {
+        System.out.println("\n-- CATEGORIAS --");
+        System.out.println("  [1] Agregar  [2] Editar  [3] Eliminar  [4] Listar");
+        System.out.print("  Opcion: ");
+        switch (leerInt()) {
+            case 1: System.out.print("Nombre: "); String n=sc.nextLine(); System.out.print("Descripcion: "); galeria.agregarCategoria(n, sc.nextLine()); break;
+            case 2: System.out.print("ID: "); int id=leerInt(); System.out.print("Nuevo nombre: "); galeria.editarCategoria(id, sc.nextLine());          break;
+            case 3: System.out.print("ID a eliminar: "); galeria.eliminarCategoria(leerInt());                                                            break;
+            case 4: galeria.listarCategorias().forEach(c -> System.out.println("  " + c.getIdCategoria() + " - " + c.getNombreCategoria()));             break;
+        }
+    }
+
+    // ════════════════════════════════════════════════
+    //  ACCIONES DE ADMIN — USUARIOS
+    // ════════════════════════════════════════════════
+    static void cambiarAdmin() {
+        admin.mostrarListaUsuarios();
+        System.out.print("ID del usuario: ");  int id  = leerInt();
+        System.out.print("Es admin (s/n): ");  String r = sc.nextLine();
+        admin.cambiarEstadoAdmin(id, r.equalsIgnoreCase("s"));
+    }
+
+    static void eliminarUsuario() {
+        admin.mostrarListaUsuarios();
+        System.out.print("ID del usuario a eliminar: ");
+        admin.eliminarUsuario(leerInt());
+    }
+
+    // ════════════════════════════════════════════════
+    //  RESUMEN FINAL
+    // ════════════════════════════════════════════════
+    static void mostrarResumenFinal() {
+        System.out.println("\n╔══════════════════════════════════════════════╗");
+        System.out.println("   RESUMEN DE LA SESION");
+        System.out.println("╚══════════════════════════════════════════════╝");
+        if (bitacora.isEmpty()) {
+            System.out.println("  No se realizaron acciones.");
+        } else {
+            for (int i = 0; i < bitacora.size(); i++)
+                System.out.println("  " + (i + 1) + ". " + bitacora.get(i));
+        }
+        System.out.println("\n  Estado final del catalogo: " +
+                           galeria.consultarCatalogo().size() + " proyectos");
+        System.out.println("  Usuarios registrados     : " +
+                           admin.getListaUsuarios().size());
+        System.out.println("════════════════════════════════════════════════");
+    }
+
+    // ════════════════════════════════════════════════
+    //  DATOS DE PRUEBA PRECARGADOS
+    // ════════════════════════════════════════════════
+    static void cargarDatosDePrueba() {
         galeria.agregarFacultad("Ingenieria");
         galeria.agregarFacultad("Ciencias Economicas");
         galeria.agregarPrograma("Ing. de Sistemas", 1);
@@ -31,158 +460,73 @@ public class Main {
         galeria.agregarCategoria("Inteligencia Artificial", "Modelos y automatizacion");
         galeria.agregarCategoria("Finanzas", "Analisis financiero");
 
-        separador("2. REGISTRO DE USUARIOS");
-
-        // Contraseñas se guardan tal como las pasa el constructor (sin encriptar en este flujo)
-        Usuario irene = new Usuario(1, "Irene",  "Romero",   "irene@correo.com",   "clave123", "avatar1.png", false, new ArrayList<>(), new ArrayList<>());
-        Usuario carlos= new Usuario(2, "Carlos", "Mendez",   "carlos@correo.com",  "clave456", "avatar2.png", false, new ArrayList<>(), new ArrayList<>());
-        Usuario adminU= new Usuario(3, "Ana",    "Perez",    "ana@correo.com",     "admin999", "avatar3.png", true,  new ArrayList<>(), new ArrayList<>());
-
-        admin.registrarUsuario(irene);
-        admin.registrarUsuario(carlos);
-        admin.registrarUsuario(adminU);
-
-        separador("3. LISTA DE USUARIOS (vista admin)");
-        admin.mostrarListaUsuarios();
-
-        separador("4. CAMBIAR ESTADO ADMIN");
-        admin.cambiarEstadoAdmin(2, true);
-        admin.mostrarListaUsuarios();
-
-        separador("5. AGREGAR PROYECTOS (solo admin puede)");
-
-        Facultad fac1 = galeria.listarFacultades().get(0);
-        Programa pro1 = galeria.listarProgramas().get(0);
-        Materia  mat1 = galeria.listarMaterias().get(0);
-        Semestre sem1 = galeria.listarSemestres().get(0);
-        Categoria cat1= galeria.listarCategorias().get(0);
+        Facultad  fac = galeria.listarFacultades().get(0);
+        Programa  pro = galeria.listarProgramas().get(0);
+        Materia   mat = galeria.listarMaterias().get(0);
+        Semestre  sem = galeria.listarSemestres().get(0);
+        Categoria cat = galeria.listarCategorias().get(0);
         Categoria cat2= galeria.listarCategorias().get(1);
 
         Proyecto p1 = new Proyecto(101, "Galeria de Proyectos PI",
-            "Sistema web para gestionar proyectos integradores",
-            "http://archivos.uni.edu/proyecto101.pdf", "http://img/p101.png",
-            0, 0, new Date(), new ArrayList<>(), new ArrayList<>(),
-            fac1, pro1, mat1, sem1, cat1);
+            "Sistema web para gestionar proyectos integradores universitarios",
+            "http://archivos.uni.edu/p101.pdf", "", 75, 12, new Date(),
+            new ArrayList<>(), new ArrayList<>(), fac, pro, mat, sem, cat, new ArrayList<>());
 
-        Proyecto p2 = new Proyecto(102, "Modelo de Prediccion Financiera",
-            "Uso de IA para predecir flujos de caja empresariales",
-            "http://archivos.uni.edu/proyecto102.pdf", "http://img/p102.png",
-            0, 0, new Date(), new ArrayList<>(), new ArrayList<>(),
-            fac1, pro1, mat1, sem1, cat2);
-
-        Proyecto p3 = new Proyecto(103, "App de Gestion de Inventarios",
-            "Aplicacion movil para control de stock en PYMES",
-            "http://archivos.uni.edu/proyecto103.pdf", "http://img/p103.png",
-            0, 0, new Date(), new ArrayList<>(), new ArrayList<>(),
-            fac1, pro1, mat1, sem1, cat1);
+        Proyecto p2 = new Proyecto(102, "Modelo de Prediccion con IA",
+            "Uso de machine learning para predecir flujos financieros",
+            "http://archivos.uni.edu/p102.pdf", "", 30, 5, new Date(),
+            new ArrayList<>(), new ArrayList<>(), fac, pro, mat, sem, cat2, new ArrayList<>());
 
         galeria.agregarProyecto(p1);
         galeria.agregarProyecto(p2);
-        galeria.agregarProyecto(p3);
 
-        separador("6. AGREGAR AUTORES Y RECURSOS A UN PROYECTO");
+        // Usuario normal con clave en texto plano (autenticar compara con encriptarClave)
+        // Para que funcione el login de prueba, la clave se guarda sin encriptar aquí
+        // y autenticar() la encripta al comparar. Entonces al crear el usuario
+        // pasamos la clave ya "encriptada" igual a como la encripta el metodo:
+        String claveIrene = "ENC_" + "clave123".hashCode();
+        String claveAdmin = "ENC_" + "admin999".hashCode();
 
-        Autor autor1 = new Autor(1, "Irene Romero",  "irene@correo.com");
-        Autor autor2 = new Autor(2, "Carlos Mendez", "carlos@correo.com");
-        p1.getListaAutores().add(autor1);
-        p1.getListaAutores().add(autor2);
+        Usuario irene = new Usuario(1, "Irene",  "Romero", "irene@correo.com", claveIrene, "", false, new ArrayList<>(), new ArrayList<>());
+        Usuario ana   = new Usuario(2, "Ana",    "Perez",  "ana@correo.com",   claveAdmin, "", true,  new ArrayList<>(), new ArrayList<>());
 
-        Recurso rec1 = new Recurso(1, "Video demo", "http://youtube.com/demo", "video", new Date());
-        Recurso rec2 = new Recurso(2, "Repositorio", "http://github.com/proyecto", "enlace", new Date());
-        p1.getListaRecursos().add(rec1);
-        p1.getListaRecursos().add(rec2);
-        System.out.println("[OK] Autores y recursos adjuntados al proyecto: " + p1.getTitulo());
+        admin.registrarUsuario(irene);
+        admin.registrarUsuario(ana);
 
-        separador("7. CATALOGO COMPLETO");
-        listarProyectos(galeria.consultarCatalogo());
-
-        separador("8. FILTRAR PROYECTOS");
-        FiltroProyecto filtro = new FiltroProyecto(1, null, null, null, null, null, null);
-        List<Proyecto> filtrados = galeria.filtrarProyectos(filtro);
-        System.out.println("Proyectos de la facultad 1: " + filtrados.size());
-        listarProyectos(filtrados);
-
-        System.out.println("\nBusqueda por texto 'IA':");
-        FiltroProyecto filtroBusqueda = new FiltroProyecto(null, null, null, null, null, "IA", null);
-        listarProyectos(galeria.filtrarProyectos(filtroBusqueda));
-
-        separador("9. VER DETALLE Y DESCARGAR ARCHIVO");
-        p1.visualizarDetalle();
-        galeria.solicitarDescarga(p1);
-
-        separador("10. USUARIO: GUARDAR PROYECTOS");
-        irene.guardarProyecto(p1);
-        irene.guardarProyecto(p2);
-        irene.guardarProyecto(p1); // intento duplicado — debe avisar
-
-        separador("11. USUARIO: VALORAR PROYECTOS");
-        irene.valorarProyecto(p1, 5);
-        irene.valorarProyecto(p2, 4);
-        irene.valorarProyecto(p1, 6); // fuera de rango — debe dar error
-
-        separador("12. USUARIO: REGISTRAR VISTAS");
-        irene.registrarVista(p1);
-        irene.registrarVista(p2);
-        irene.registrarVista(p3);
-        p1.setCantidadVistas(45);
-        p2.setCantidadVistas(120);
-        p3.setCantidadVistas(30);
-
-        separador("13. USUARIO: VER PERFIL");
-        irene.verPerfil();
-
-        separador("14. USUARIO: VER GUARDADOS");
-        System.out.println("Guardados de " + irene.getNombre() + ":");
-        for (Guardado g : irene.getListaGuardados())
-            System.out.println("  - " + g.getProyecto().getTitulo() +
-                               " | Guardado: " + g.getFechaGuardado());
-
-        separador("15. USUARIO: ELIMINAR UN GUARDADO");
-        irene.eliminarProyecto(p2.getIdProyecto());
-        System.out.println("Guardados restantes: " + irene.getListaGuardados().size());
-
-        separador("16. LANDING PAGE");
-        landing.mostrarLanding();
-
-        separador("17. EDITAR PROYECTO (admin)");
-        Proyecto p1Editado = new Proyecto(101, "Galeria PI - v2.0",
-            "Version mejorada del sistema de gestion",
-            "http://archivos.uni.edu/proyecto101v2.pdf", "http://img/p101v2.png",
-            p1.getCantidadVistas(), p1.getCantidadGuardados(), new Date(),
-            p1.getListaAutores(), p1.getListaRecursos(),
-            fac1, pro1, mat1, sem1, cat1);
-        galeria.editarProyecto(101, p1Editado);
-
-        separador("18. ELIMINAR PROYECTO (admin)");
-        galeria.eliminarProyecto(103);
-        System.out.println("Proyectos en catalogo: " + galeria.consultarCatalogo().size());
-
-        separador("19. ELIMINAR USUARIO (admin)");
-        admin.eliminarUsuario(2);
-        admin.mostrarListaUsuarios();
-
-        separador("20. USUARIO: ELIMINAR MI CUENTA");
-        irene.eliminarMiCuenta();
-
-        separador("=== PRUEBA COMPLETA FINALIZADA ===");
+        System.out.println("[SISTEMA] Datos de prueba cargados.");
+        System.out.println("[SISTEMA] Usuario normal : irene@correo.com / clave123");
+        System.out.println("[SISTEMA] Administrador  : ana@correo.com   / admin999");
     }
 
-    // ── Utilidades de consola ──────────────────────────────
-    private static void separador(String titulo) {
-        System.out.println("\n╔══════════════════════════════════════════════╗");
-        System.out.println("  " + titulo);
-        System.out.println("╚══════════════════════════════════════════════╝");
+    // ════════════════════════════════════════════════
+    //  UTILIDADES
+    // ════════════════════════════════════════════════
+    static int leerInt() {
+        try {
+            int n = Integer.parseInt(sc.nextLine().trim());
+            return n;
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 
-    private static void listarProyectos(List<Proyecto> lista) {
-        if (lista.isEmpty()) {
-            System.out.println("  (sin resultados)");
-            return;
-        }
-        for (Proyecto p : lista) {
-            System.out.println("  [" + p.getIdProyecto() + "] " + p.getTitulo() +
-                               " | Cat: " + (p.getCategoria() != null ? p.getCategoria().getNombreCategoria() : "N/A") +
-                               " | Vistas: " + p.getCantidadVistas());
-        }
+    static Integer leerIntOpcional() {
+        String linea = sc.nextLine().trim();
+        if (linea.isEmpty()) return null;
+        try { return Integer.parseInt(linea); }
+        catch (NumberFormatException e) { return null; }
+    }
+
+    interface Etiquetador<T> { String etiqueta(T item); }
+    interface Condicion<T>   { boolean cumple(T item); }
+
+    static <T> void mostrarLista(String titulo, List<T> lista, Etiquetador<T> fn) {
+        System.out.println("  -- " + titulo + " --");
+        for (T item : lista) System.out.println("  " + fn.etiqueta(item));
+    }
+
+    static <T> T buscarEnLista(List<T> lista, Condicion<T> condicion) {
+        for (T item : lista) if (condicion.cumple(item)) return item;
+        return null;
     }
 }

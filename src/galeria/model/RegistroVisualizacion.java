@@ -31,7 +31,4 @@ public class RegistroVisualizacion {
 	public String getIpSesion() {
 		return ipSesion;
 	}
-	public void registrarVista() {
-		
-	}
 }

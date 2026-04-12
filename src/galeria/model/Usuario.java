@@ -111,9 +111,14 @@ public class Usuario {
 	}
 	
 	public void guardarProyecto(Proyecto p) {
-		Guardado nuevoGuardado = new Guardado(0, this, p, new Date(), 0.0);
-	    this.listaGuardados.add(nuevoGuardado);
-	    System.out.println("LOG: El usuario " + this.nombre + " guardó el proyecto: " + p.getTitulo());
+	    for (Guardado g : listaGuardados) {
+	        if (g.getProyecto().getIdProyecto() == p.getIdProyecto()) {
+	            System.out.println("[INFO] Ya tienes este proyecto guardado.");
+	            return;
+	        }
+	    }
+	    listaGuardados.add(new Guardado(0, this, p, new Date(), 0.0));
+	    System.out.println("[OK] Proyecto guardado: " + p.getTitulo());
 	}
 	
 	public void eliminarProyecto(int idProyecto) {
@@ -139,19 +144,19 @@ public class Usuario {
 	}
 	
 	public void valorarProyecto(Proyecto p, int puntuacion) {
-		if (puntuacion >= 1 && puntuacion <= 5) {
-			//El this significa que es el usuario actual quien valora el proyecto
-            Valoracion v = new Valoracion(0, this, p, puntuacion, new Date());
-            
-            System.out.println("Has valorado '" + p.getTitulo() + "' con " + puntuacion + " estrellas.");
-        } else {
-            System.out.println("Error: La puntuación debe ser entre 1 y 5.");
-        }
+	    if (puntuacion < 1 || puntuacion > 5) {
+	        System.out.println("[ERROR] La puntuacion debe ser entre 1 y 5.");
+	        return;
+	    }
+	    Valoracion v = new Valoracion(0, this, p, puntuacion, new Date());
+	    p.agregarValoracion(v);
+	    System.out.println("[OK] Valoracion de " + puntuacion + "/5 registrada en '" + p.getTitulo() + "'.");
 	}
 	
 	public void registrarVista(Proyecto p) {
-	    RegistroVisualizacion vista = new RegistroVisualizacion(0, this, p, new Date(), "1222");
+	    p.registrarVista();
+	    RegistroVisualizacion vista = new RegistroVisualizacion(0, this, p, new Date(), "127.0.0.1");
 	    this.historialVistas.add(vista);
-	    System.out.println("LOG: El usuario visualizó el proyecto: " + p.getTitulo());
+	    System.out.println("[OK] Vista registrada en: " + p.getTitulo());
 	}
 }
