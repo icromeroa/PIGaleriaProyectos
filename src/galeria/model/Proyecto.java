@@ -141,7 +141,7 @@ public class Proyecto {
 		this.listaValoraciones = listaValoraciones;
 	}
 	
-	public void registrarVista() {
+	public void contadorVistas() {
 		this.cantidadVistas++;
 	}
 	

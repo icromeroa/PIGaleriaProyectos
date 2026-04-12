@@ -154,7 +154,7 @@ public class Usuario {
 	}
 	
 	public void registrarVista(Proyecto p) {
-	    p.registrarVista();
+	    p.contadorVistas();
 	    RegistroVisualizacion vista = new RegistroVisualizacion(0, this, p, new Date(), "127.0.0.1");
 	    this.historialVistas.add(vista);
 	    System.out.println("[OK] Vista registrada en: " + p.getTitulo());
