@@ -14,7 +14,7 @@ public class Recurso {
 		this.nombreRecurso = nombreRecurso;
 		this.url = url;
 		this.tipo = tipo;
-		this.fechaSubida = fechaSubida;
+		this.setFechaSubida(fechaSubida);
 	}
 	public int getIdRecurso() {
 		return idRecurso;
@@ -27,6 +27,12 @@ public class Recurso {
 	}
 	public String getTipo() {
 		return tipo;
+	}
+	public Date getFechaSubida() {
+		return fechaSubida;
+	}
+	public void setFechaSubida(Date fechaSubida) {
+		this.fechaSubida = fechaSubida;
 	}
 	
 }

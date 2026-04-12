@@ -1,4 +1,5 @@
 package galeria.model;
+import java.util.Date;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +16,6 @@ public class Usuario {
 	private List<Guardado> listaGuardados = new ArrayList<>();
     private List<RegistroVisualizacion> historialVistas = new ArrayList<>();
     
-    
-
 	public Usuario(int idUsuario, String nombre, String apellido, String correo, String clave, String avatarURL,
 			boolean esAdmin, List<Guardado> listaGuardados, List<RegistroVisualizacion> historialVistas) {
 		super();
@@ -95,31 +94,64 @@ public class Usuario {
 		return clave;
 	}
 	
+	public void setListaGuardados(List<Guardado> listaGuardados) {
+		this.listaGuardados = listaGuardados;
+	}
+
+	public void setHistorialVistas(List<RegistroVisualizacion> historialVistas) {
+		this.historialVistas = historialVistas;
+	}
+
 	private String encriptarClave(String clave) {
 		return "ENC_" + clave.hashCode();
 	}
 	
 	public boolean autenticar(String correo, String clave) {
-		
+		return this.correo.equals(correo) && this.clave.equals(encriptarClave(clave));
 	}
 	
 	public void guardarProyecto(Proyecto p) {
-		
+		Guardado nuevoGuardado = new Guardado(0, this, p, new Date(), 0.0);
+	    this.listaGuardados.add(nuevoGuardado);
+	    System.out.println("LOG: El usuario " + this.nombre + " guardó el proyecto: " + p.getTitulo());
 	}
 	
 	public void eliminarProyecto(int idProyecto) {
-		
+		listaGuardados.removeIf(g -> g.getProyecto().getIdProyecto() == idProyecto);
+        System.out.println("Proyecto con ID " + idProyecto + " eliminado de guardados.");
 	}
 	
 	public void verPerfil() {
-		
+		System.out.println("--- PERFIL DE USUARIO ---");
+        System.out.println("Nombre: " + nombre + " " + apellido);
+        System.out.println("Correo: " + correo);
+        System.out.println("Proyectos Guardados: " + listaGuardados.size());
+        System.out.println("Vistas en historial: " + historialVistas.size());
 	}
 	
 	public void eliminarMiCuenta() {
-		
+		this.listaGuardados.clear();
+        this.historialVistas.clear();
+        this.nombre = "Cuenta_Eliminada";
+        this.correo = "";
+        this.clave = "";
+        System.out.println("LOG: La cuenta del usuario ID " + this.idUsuario + " ha sido desactivada.");
 	}
 	
-	public void valorarProyecto() {
-		
+	public void valorarProyecto(Proyecto p, int puntuacion) {
+		if (puntuacion >= 1 && puntuacion <= 5) {
+			//El this significa que es el usuario actual quien valora el proyecto
+            Valoracion v = new Valoracion(0, this, p, puntuacion, new Date());
+            
+            System.out.println("Has valorado '" + p.getTitulo() + "' con " + puntuacion + " estrellas.");
+        } else {
+            System.out.println("Error: La puntuación debe ser entre 1 y 5.");
+        }
+	}
+	
+	public void registrarVista(Proyecto p) {
+	    RegistroVisualizacion vista = new RegistroVisualizacion(0, this, p, new Date(), "1222");
+	    this.historialVistas.add(vista);
+	    System.out.println("LOG: El usuario visualizó el proyecto: " + p.getTitulo());
 	}
 }

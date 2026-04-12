@@ -27,6 +27,12 @@ public class Categoria {
 	public int getIdCategoria() {
 		return idCategoria;
 	}
+	public String getIcono() {
+		return icono;
+	}
+	public void setIdCategoria(int idCategoria) {
+		this.idCategoria = idCategoria;
+	}
 	public void setIcono(String icono) {
 		this.icono = icono;
 	}

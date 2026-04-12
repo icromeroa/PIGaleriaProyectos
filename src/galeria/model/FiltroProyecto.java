@@ -1,5 +1,7 @@
 package galeria.model;
 
+import java.util.List;
+
 public class FiltroProyecto {
 	private Integer idFacultad;
 	private Integer idPrograma;
@@ -62,9 +64,11 @@ public class FiltroProyecto {
 		this.ordenarPor = ordenarPor;
 	}
 	public boolean estaVacio() {
-		
+	    return idFacultad == null && idPrograma == null && idMateria == null
+	            && idSemestre == null && idCategoria == null
+	            && (textoBusqueda == null || textoBusqueda.isEmpty());
 	}
 	public List<Proyecto> aplicarFiltro() {
-		
+		return new java.util.ArrayList<>();
 	}
 }

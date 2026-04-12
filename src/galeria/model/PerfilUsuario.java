@@ -8,7 +8,7 @@ public class PerfilUsuario {
 	private Usuario usuario;
 	private int cantidadGuardados;
 	private int cantidadValoraciones;
-	private List<Proyecto> listaProyectosSubidos = new ArrayList<>()
+	private List<Proyecto> listaProyectosSubidos = new ArrayList<>();
 	private Date fechaRegistro;
 	public PerfilUsuario(Usuario usuario, int cantidadGuardados, int cantidadValoraciones,
 			List<Proyecto> listaProyectosSubidos, Date fechaRegistro) {

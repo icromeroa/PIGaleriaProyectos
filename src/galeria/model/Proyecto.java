@@ -131,20 +131,43 @@ public class Proyecto {
 	public void setCategoria(Categoria categoria) {
 		this.categoria = categoria;
 	}
+	
 	public void registrarVista() {
-		
 	}
+	
 	public float valoracionPromedio() {
-		
+		return 0.0f;
 	}
+	
 	public boolean esDestacado() {
-		
+		return false;
 	}
+	
 	public void visualizarDetalle() {
-		
+	    System.out.println("------------------------------------------------");
+	    System.out.println("  Titulo   : " + titulo);
+	    System.out.println("  Resumen  : " + resumen);
+	    System.out.println("  Facultad : " + (facultad  != null ? facultad.getNombreFacultad()  : "N/A"));
+	    System.out.println("  Programa : " + (programa  != null ? programa.getNombrePrograma()  : "N/A"));
+	    System.out.println("  Materia  : " + (materia   != null ? materia.getNombreMateria()    : "N/A"));
+	    System.out.println("  Semestre : " + (semestre  != null ? semestre.getAnio() + "-" + semestre.getPeriodo() : "N/A"));
+	    System.out.println("  Categoria: " + (categoria != null ? categoria.getNombreCategoria(): "N/A"));
+	    System.out.println("  Vistas   : " + cantidadVistas);
+	    System.out.println("  Archivo  : " + archivoURL);
+	    if (!listaAutores.isEmpty()) {
+	        System.out.println("  Autores  :");
+	        for (Autor a : listaAutores)
+	            System.out.println("    - " + a.getNombreAutor() + " <" + a.getCorreo() + ">");
+	    }
+	    if (!listaRecursos.isEmpty()) {
+	        System.out.println("  Recursos :");
+	        for (Recurso r : listaRecursos)
+	            System.out.println("    - [" + r.getTipo() + "] " + r.getNombreRecurso() + " -> " + r.getUrl());
+	    }
+	    System.out.println("------------------------------------------------");
 	}
+	
 	public void descargarArchivo() {
-		
 	}
 	
 }

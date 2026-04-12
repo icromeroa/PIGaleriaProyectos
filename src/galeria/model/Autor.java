@@ -6,7 +6,7 @@ public class Autor {
 	private String correo;
 	public Autor(int idAutor, String nombreAutor, String correo) {
 		super();
-		this.idAutor = idAutor;
+		this.setIdAutor(idAutor);
 		this.nombreAutor = nombreAutor;
 		this.correo = correo;
 	}
@@ -21,6 +21,12 @@ public class Autor {
 	}
 	public void setCorreo(String correo) {
 		this.correo = correo;
+	}
+	public int getIdAutor() {
+		return idAutor;
+	}
+	public void setIdAutor(int idAutor) {
+		this.idAutor = idAutor;
 	}
 	
 }
