@@ -1,4 +1,4 @@
-package galeria;
+package galeria.model;
 
 public class Facultad {
 
