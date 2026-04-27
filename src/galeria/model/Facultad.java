@@ -17,6 +17,7 @@ public class Facultad {
 	public int getIdFacultad() {
 		return idFacultad;
 	}
-	
-	
+	public void setIdFacultad(int idFacultad) {
+		this.idFacultad = idFacultad;
+	}
 }

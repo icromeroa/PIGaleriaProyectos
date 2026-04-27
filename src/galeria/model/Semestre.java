@@ -25,5 +25,8 @@ public class Semestre {
 	public int getIdSemestre() {
 		return idSemestre;
 	}
-	
+
+	public void setIdSemestre(int idSemestre) {
+		this.idSemestre = idSemestre;
+	}
 }

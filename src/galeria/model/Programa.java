@@ -17,6 +17,8 @@ public class Programa {
 	public int getIdPrograma() {
 		return idPrograma;
 	}
-	
-	
+
+	public void setIdPrograma(int idPrograma) {
+		this.idPrograma = idPrograma;
+	}
 }

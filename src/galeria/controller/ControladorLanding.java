@@ -4,7 +4,7 @@ import galeria.model.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ControladorLanding {
+public class    ControladorLanding {
 
     private ControladorGaleria controladorGaleria;
 

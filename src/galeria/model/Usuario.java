@@ -89,11 +89,7 @@ public class Usuario {
 	public List<RegistroVisualizacion> getHistorialVistas() {
 		return historialVistas;
 	}
-	
-	public String getClave() {
-		return clave;
-	}
-	
+
 	public void setListaGuardados(List<Guardado> listaGuardados) {
 		this.listaGuardados = listaGuardados;
 	}
