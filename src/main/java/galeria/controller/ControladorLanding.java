@@ -49,12 +49,12 @@ public class ControladorLanding {
             totalGuardados += p.getCantidadGuardados();
         }
         return new Estadisticas(
-            todos.size(),
-            0,
-            controladorGaleria.listarFacultades().size(),
-            totalVistas,
-            totalGuardados,
-            0
+                todos.size(),
+                0,
+                controladorGaleria.listarFacultades().size(),
+                totalVistas,
+                totalGuardados,
+                0
         );
     }
 

@@ -1,6 +1,6 @@
 package galeria.controller;
 
-import galeria.model.*;
+import java.galeria.model.*;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package galeria.view;
+package galeria.app;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
