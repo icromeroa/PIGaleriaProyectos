@@ -1,0 +1,41 @@
+/* Registro de las fuentes */
+@font-face {
+    font-family: 'Manrope';
+    src: url('../fonts/Manrope.ttf');
+}
+
+@font-face {
+    font-family: 'Manrope Bold';
+    src: url('../fonts/Manrope.ttf');
+    font-weight: bold;
+}
+
+/* Aplicación Global */
+.root {
+    -fx-font-family: "Manrope";
+}
+
+.navbar {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 5);
+}
+
+.logo-text {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2937;
+}
+
+.logo-accent {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f97316;
+}
+
+.login-btn {
+    -fx-background-color: #1f2937;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
