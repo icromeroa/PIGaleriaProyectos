@@ -3,13 +3,13 @@ package galeria.model;
 import java.util.Date;
 
 public class Guardado {
-	private int idGuardado;
-	private Usuario usuario;
-	private Proyecto proyecto;
-	private Date fechaGuardado;
-	private double nota;
-	public Guardado(int idGuardado, Usuario usuario, Proyecto proyecto, Date fechaGuardado, double nota) {
-		super();
+		private int idGuardado;
+		private Usuario usuario;
+		private Proyecto proyecto;
+		private Date fechaGuardado;
+		private double nota;
+		public Guardado(int idGuardado, Usuario usuario, Proyecto proyecto, Date fechaGuardado, double nota) {
+			super();
 		this.idGuardado = idGuardado;
 		this.usuario = usuario;
 		this.proyecto = proyecto;

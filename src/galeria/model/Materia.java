@@ -17,8 +17,5 @@ public class Materia {
 	public int getIdMateria() {
 		return idMateria;
 	}
-
-	public void setIdMateria(int idMateria) {
-		this.idMateria = idMateria;
-	}
+	
 }
