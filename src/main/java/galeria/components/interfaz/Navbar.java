@@ -1,6 +1,7 @@
 package galeria.components.interfaz;
 
 import galeria.util.Animations;
+import galeria.util.Colors; // Importamos nuevas variables
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -10,96 +11,85 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeRegular;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 
-/**
- * Componente Navbar construido totalmente en Java.
- * Gestiona el logo, los links de navegación y el botón de acceso.
- */
 public class Navbar extends HBox {
 
     public Navbar() {
-        // 1. Configuración de la barra principal
-        this.getStyleClass().add("navbar");
+        // 1. Estilo de la Barra (Forma de Píldora)
         this.setAlignment(Pos.CENTER_LEFT);
-        this.setPadding(new Insets(15, 30, 15, 30));
-        this.setSpacing(35);
-        this.setStyle("-fx-background-color: #ffffff; -fx-border-color: #eeeeee; -fx-border-width: 0 0 1 0;");
+        this.setPadding(new Insets(10, 20, 10, 20));
+        this.setSpacing(30);
 
-        // ---------- SECCIÓN LOGO ----------
-        StackPane logoContainer = new StackPane();
+        // El fondo azul clarito y redondeado de la imagen
+        // Para que sea dinámico según tu clase Colors:
+        String fondo = "#" + Colors.FONDO_NAV.toString().substring(2, 8);
+        this.setStyle("-fx-background-color: " + fondo + "; " +
+                "-fx-background-radius: 50; " +
+                "-fx-margin: 10 20 10 20;");
 
-        Circle fondoLogo = new Circle(18);
-        fondoLogo.setFill(Color.web("#f97316")); // Naranja vibrante
+        // ---------- LOGO ----------
+        StackPane logoBox = new StackPane();
+        Circle logoBg = new Circle(12, Colors.PRINCIPAL); // Usamos variable
 
-// Esta es la forma infalible si el símbolo no resuelve:
-        FontIcon iconoCubo = new FontIcon("fas-cube");
-        iconoCubo.setIconSize(20);
-        iconoCubo.setIconColor(Color.WHITE);
+        FontIcon cubeIcon = new FontIcon("fas-cube");
+        cubeIcon.setIconSize(12);
+        cubeIcon.setIconColor(Colors.BLANCO);
+        logoBox.getChildren().addAll(logoBg, cubeIcon);
 
-        logoContainer.getChildren().addAll(fondoLogo, iconoCubo);
+        logoBox.setTranslateY(-5);
 
-        // Animación constante de pulso para el logo
-        Animations.attachPulse(logoContainer);
+        Label uni = new Label("Uni");
+        uni.setStyle("-fx-font-size: 20px; -fx-font-weight: 900;");
+        Label repo = new Label("Repo");
+        repo.setTextFill(Colors.ACCENTO);
+        repo.setStyle("-fx-font-size: 20px; -fx-font-weight: 900;");
 
-        Label textoUni = new Label("Uni");
-        textoUni.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1f2937;");
-        Label textoRepo = new Label("Repo");
-        textoRepo.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #f97316;");
+        HBox logo = new HBox(8, logoBox, new HBox(0, uni, repo));
+        logo.setAlignment(Pos.CENTER_LEFT);
+        logo.setTranslateY(2);
 
-        HBox marca = new HBox(8, logoContainer, new HBox(0, textoUni, textoRepo));
-        marca.setAlignment(Pos.CENTER_LEFT);
-
-        // ---------- LINKS DE NAVEGACIÓN ----------
-        HBox menuLinks = new HBox(30);
-        menuLinks.setAlignment(Pos.CENTER);
-        menuLinks.getChildren().addAll(
-                crearEnlace("Inicio", true),
-                crearEnlace("Explorar", false),
-                crearEnlace("Sobre Nosotros", false)
+        // ---------- LINKS ----------
+        HBox links = new HBox(25);
+        links.setAlignment(Pos.CENTER);
+        links.getChildren().addAll(
+                navLink("Inicio", true),
+                navLink("Explorar Catálogo", false),
+                navLink("Sobre Nosotros", false)
         );
 
-        // ---------- ESPACIADOR ----------
-        Region espaciador = new Region();
-        HBox.setHgrow(espaciador, Priority.ALWAYS);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // ---------- BOTÓN DE ACCIÓN ----------
-        Button botonLogin = new Button("Iniciar Sesión");
-        botonLogin.setStyle(
-                "-fx-background-color: #1f2937; " +
+        // ---------- BOTÓN LOGIN (AZUL Y REDONDEADO) ----------
+        FontIcon userIcon = new FontIcon(FontAwesomeSolid.USER_CIRCLE);
+        userIcon.setIconColor(Colors.BLANCO);
+        userIcon.setIconSize(18);
+
+        Button loginBtn = new Button("Iniciar Sesión", userIcon);
+        loginBtn.setGraphicTextGap(10);
+        loginBtn.setStyle(
+                "-fx-background-color: #3F68E4; " +
                         "-fx-text-fill: white; " +
-                        "-fx-font-weight: bold; " +
-                        "-fx-padding: 10 25; " +
-                        "-fx-background-radius: 8;"
+                        "-fx-font-weight: medium; " +
+                        "-fx-background-radius: 30; " +
+                        "-fx-padding: 8 22;"
         );
 
-        // Aplicar animación de levantamiento y sombra al botón
-        Animations.attachHoverLift(botonLogin);
+        Animations.attachHoverLift(loginBtn);
 
-        // 2. Ensamblar todos los elementos en la Navbar
-        this.getChildren().addAll(marca, menuLinks, espaciador, botonLogin);
+        this.getChildren().addAll(logo, links, spacer, loginBtn);
     }
 
-    /**
-     * Crea un Label que funciona como link con efectos de hover.
-     */
-    private Label crearEnlace(String titulo, boolean esActivo) {
-        Label link = new Label(titulo);
+    private Label navLink(String text, boolean active) {
+        Label l = new Label(text);
+        l.setTextFill(active ? Colors.ACCENTO : Colors.TEXTO_OSCURO);
+        l.setStyle("-fx-font-size: 14px; -fx-font-weight: medium; -fx-cursor: hand;");
 
-        String estiloBase = "-fx-font-size: 15px; -fx-font-weight: 500; -fx-cursor: hand; ";
-        String colorNormal = esActivo ? "-fx-text-fill: #f97316;" : "-fx-text-fill: #6b7280;";
-
-        link.setStyle(estiloBase + colorNormal);
-
-        if (!esActivo) {
-            link.setOnMouseEntered(e -> {
-                link.setStyle(estiloBase + "-fx-text-fill: #f97316;");
-                // Podrías añadir una pequeña animación aquí
-            });
-            link.setOnMouseExited(e -> {
-                link.setStyle(estiloBase + colorNormal);
-            });
+        if(!active) {
+            l.setOnMouseEntered(e -> l.setTextFill(Colors.ACCENTO));
+            l.setOnMouseExited(e -> l.setTextFill(Colors.TEXTO_OSCURO));
         }
-
-        return link;
+        return l;
     }
 }

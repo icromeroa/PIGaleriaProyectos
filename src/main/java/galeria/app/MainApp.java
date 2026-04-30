@@ -3,8 +3,10 @@ package galeria.app;
 import galeria.components.interfaz.Navbar;
 import javafx.application.Application;
 import javafx.animation.FadeTransition;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -17,7 +19,11 @@ public class MainApp extends Application {
 
         // Instanciamos tu Navbar
         Navbar navbar = new Navbar();
-        root.setTop(navbar);
+        // Creamos un contenedor "falso" para darle márgenes externos
+        StackPane navbarWrapper = new StackPane(navbar);
+        navbarWrapper.setPadding(new Insets(20, 40, 0, 40)); // Arriba, Derecha, Abajo, Izquierda
+
+        root.setTop(navbarWrapper);
 
         // Creamos la escena
         Scene scene = new Scene(root, 1280, 820);
