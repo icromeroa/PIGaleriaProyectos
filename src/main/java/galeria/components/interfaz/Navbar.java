@@ -12,6 +12,7 @@ import javafx.scene.shape.Circle;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeRegular;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
+import io.github.palexdev.materialfx.controls.MFXButton;
 
 public class Navbar extends HBox {
 
@@ -60,6 +61,8 @@ public class Navbar extends HBox {
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
+        // Dentro del constructor de Navbar:
+        MFXButton loginB0tn = Atomos.crearBotonPrincipal("Iniciar Sesión", FontAwesomeSolid.USER_CIRCLE);
 
         // ---------- BOTÓN LOGIN (AZUL Y REDONDEADO) ----------
         FontIcon userIcon = new FontIcon(FontAwesomeSolid.USER_CIRCLE);
@@ -92,4 +95,5 @@ public class Navbar extends HBox {
         }
         return l;
     }
+
 }
