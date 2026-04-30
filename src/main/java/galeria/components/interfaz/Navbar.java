@@ -12,6 +12,7 @@ import javafx.scene.shape.Circle;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeRegular;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
+import io.github.palexdev.materialfx.controls.MFXButton;
 
 public class Navbar extends HBox {
 
@@ -37,17 +38,19 @@ public class Navbar extends HBox {
         cubeIcon.setIconColor(Colors.BLANCO);
         logoBox.getChildren().addAll(logoBg, cubeIcon);
 
-        logoBox.setTranslateY(-5);
+        logoBox.setTranslateY(1);
 
         Label uni = new Label("Uni");
         uni.setStyle("-fx-font-size: 20px; -fx-font-weight: 900;");
+        uni.setTranslateY(4);
         Label repo = new Label("Repo");
         repo.setTextFill(Colors.ACCENTO);
+        repo.setTranslateY(4);
         repo.setStyle("-fx-font-size: 20px; -fx-font-weight: 900;");
+
 
         HBox logo = new HBox(8, logoBox, new HBox(0, uni, repo));
         logo.setAlignment(Pos.CENTER_LEFT);
-        logo.setTranslateY(2);
 
         // ---------- LINKS ----------
         HBox links = new HBox(25);
@@ -55,27 +58,37 @@ public class Navbar extends HBox {
         links.getChildren().addAll(
                 navLink("Inicio", true),
                 navLink("Explorar Catálogo", false),
-                navLink("Sobre Nosotros", false)
+                navLink("Sobre Nosotras", false)
         );
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-
         // ---------- BOTÓN LOGIN (AZUL Y REDONDEADO) ----------
-        FontIcon userIcon = new FontIcon(FontAwesomeSolid.USER_CIRCLE);
+        // Cambiamos USER_CIRCLE por el icono USER (fas-user)
+        FontIcon userIcon = new FontIcon("far-user");
         userIcon.setIconColor(Colors.BLANCO);
-        userIcon.setIconSize(18);
+        userIcon.setIconSize(12); // Bajamos un pelín el tamaño para que se vea más elegante
 
-        Button loginBtn = new Button("Iniciar Sesión", userIcon);
+        // ---------- BOTÓN LOGIN CON MATERIALFX ----------
+        MFXButton loginBtn = new MFXButton("Iniciar Sesión", userIcon);
         loginBtn.setGraphicTextGap(10);
+
+        // Configuración de colores y animaciones de MaterialFX
+        loginBtn.setRippleColor(Color.WHITE); // Color de la onda al hacer clic
+        loginBtn.setRippleAnimateBackground(true); // Anima el fondo con el clic
+
+        // Mantenemos tu estilo visual pero aplicado al componente MFX
+        String azulBoton = "#" + Colors.PRINCIPAL.toString().substring(2, 8);
         loginBtn.setStyle(
-                "-fx-background-color: #3F68E4; " +
+                "-fx-background-color: " + azulBoton + "; " +
                         "-fx-text-fill: white; " +
                         "-fx-font-weight: medium; " +
                         "-fx-background-radius: 30; " +
-                        "-fx-padding: 8 22;"
+                        "-fx-padding: 8 22; " +
+                        "-fx-cursor: hand;"
         );
 
+// Mantenemos tu animación de "levante" para que tenga doble efecto pro
         Animations.attachHoverLift(loginBtn);
 
         this.getChildren().addAll(logo, links, spacer, loginBtn);
