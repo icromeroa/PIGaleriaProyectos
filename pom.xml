@@ -59,7 +59,7 @@
                 <version>0.0.8</version>
                 <configuration>
                     <!-- Ajustado a tu estructura: paquete galeria.app -->
-                    <mainClass>galeria.app.Main</mainClass>
+                    <mainClass>galeria.app.MainApp</mainClass>
                 </configuration>
             </plugin>
         </plugins>

@@ -8,7 +8,7 @@ public class Valoracion {
 	private Proyecto proyecto;
 	private int puntuacion;
 	private Date fechaValoracion;
-	pugblic Valoracion(int idValoracion, Usuario usuario, Proyecto proyecto, int puntuacion, Date fechaValoracion) {
+	public Valoracion(int idValoracion, Usuario usuario, Proyecto proyecto, int puntuacion, Date fechaValoracion) {
 		super();
 		this.idValoracion = idValoracion;
 		this.usuario = usuario;

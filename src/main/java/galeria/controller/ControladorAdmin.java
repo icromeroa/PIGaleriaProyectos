@@ -1,79 +1,69 @@
 package galeria.controller;
 
-import java.galeria.model.*;
-import java.util.ArrayList;
+import galeria.dao.UsuarioDAO;
+import galeria.model.Usuario;
+import galeria.util.Sesion;
+
 import java.util.List;
 
 public class ControladorAdmin {
 
-    private List<Usuario> listaUsuarios = new ArrayList<>();
+    private final UsuarioDAO usuarioDAO = new UsuarioDAO();
 
-    public void registrarUsuario(Usuario u) {
-        listaUsuarios.add(u);
-        System.out.println("[OK] Usuario registrado: " + u.getNombre() + " " + u.getApellido());
-    }
-
-    public List<Usuario> getListaUsuarios() {
-        return listaUsuarios;
-    }
-
-    public void mostrarListaUsuarios() {
-        System.out.println("================================================");
-        System.out.println("  LISTA DE USUARIOS REGISTRADOS");
-        System.out.println("================================================");
-        System.out.printf("  %-4s %-12s %-12s %-25s %-6s%n",
-                          "ID", "Nombre", "Apellido", "Correo", "Admin");
-        System.out.println("  ------------------------------------------------");
-        for (Usuario u : listaUsuarios) {
-            System.out.printf("  %-4d %-12s %-12s %-25s %-6s%n",
-                u.getIdUsuario(),
-                u.getNombre(),
-                u.getApellido(),
-                u.getCorreo(),
-                u.getEsAdmin() ? "Si" : "No");
-        }
-        System.out.println("================================================");
-    }
-
-    public void cambiarEstadoAdmin(int idUsuario, boolean esAdmin) {
-        Usuario u = buscarUsuario(idUsuario);
+    // ── LOGIN ──────────────────────────────────────────────
+    public Usuario iniciarSesion(String correo, String clave) {
+        Usuario u = usuarioDAO.login(correo, clave);
         if (u != null) {
-            u.setEsAdmin(esAdmin);
-            System.out.println("[OK] Usuario " + u.getNombre() +
-                               " ahora es admin: " + esAdmin);
+            Sesion.iniciar(u);
+            System.out.println("[OK] Sesion iniciada: " + u.getNombre());
         } else {
-            System.out.println("[ERROR] Usuario no encontrado: " + idUsuario);
+            System.out.println("[ERROR] Credenciales incorrectas.");
         }
+        return u;
+    }
+
+    public void cerrarSesion() {
+        Sesion.cerrar();
+        System.out.println("[OK] Sesion cerrada.");
+    }
+
+    // ── REGISTRO ───────────────────────────────────────────
+    public boolean registrarUsuario(Usuario u) {
+        if (usuarioDAO.buscarPorCorreo(u.getCorreo()) != null) {
+            System.out.println("[ERROR] Ya existe un usuario con ese correo.");
+            return false;
+        }
+        usuarioDAO.insertarUsuario(u);
+        return true;
+    }
+
+    // ── USUARIOS ───────────────────────────────────────────
+    public List<Usuario> getListaUsuarios() {
+        return usuarioDAO.listarUsuarios();
     }
 
     public Usuario buscarUsuarioPorCorreo(String correo) {
-        for (Usuario u : listaUsuarios)
-            if (u.getCorreo().equals(correo)) return u;
-        return null;
+        return usuarioDAO.buscarPorCorreo(correo);
+    }
+
+    public void cambiarEstadoAdmin(int idUsuario, boolean esAdmin) {
+        List<Usuario> lista = usuarioDAO.listarUsuarios();
+        for (Usuario u : lista) {
+            if (u.getIdUsuario() == idUsuario) {
+                u.setEsAdmin(esAdmin);
+                usuarioDAO.actualizarUsuario(u);
+                System.out.println("[OK] Estado admin actualizado.");
+                return;
+            }
+        }
+        System.out.println("[ERROR] Usuario no encontrado.");
     }
 
     public void eliminarUsuario(int idUsuario) {
-        boolean ok = listaUsuarios.removeIf(u -> u.getIdUsuario() == idUsuario);
-        System.out.println(ok
-            ? "[OK] Usuario eliminado con ID: " + idUsuario
-            : "[ERROR] Usuario no encontrado: " + idUsuario);
+        usuarioDAO.eliminarUsuario(idUsuario);
     }
 
-    private Usuario buscarUsuario(int idUsuario) {
-        for (Usuario u : listaUsuarios)
-            if (u.getIdUsuario() == idUsuario) return u;
-        return null;
-    }
-
-    // Autenticación: retorna el usuario si las credenciales son correctas
-    public Usuario iniciarSesion(String correo, String clave) {
-        for (Usuario u : listaUsuarios) {
-            if (u.autenticar(correo, clave)) {
-                System.out.println("[OK] Sesion iniciada: " + u.getNombre() + " " + u.getApellido());
-                return u;
-            }
-        }
-        System.out.println("[ERROR] Credenciales incorrectas.");
-        return null;
+    public void editarUsuario(Usuario u) {
+        usuarioDAO.actualizarUsuario(u);
     }
 }

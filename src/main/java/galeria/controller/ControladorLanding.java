@@ -57,35 +57,4 @@ public class ControladorLanding {
                 0
         );
     }
-
-    public void mostrarLanding() {
-        System.out.println("================================================");
-        System.out.println("  REPOSITORIO DE PROYECTOS INTEGRADORES");
-        System.out.println("================================================");
-
-        Estadisticas e = getEstadisticasGenerales();
-        System.out.println("  Total proyectos : " + e.getTotalProyectos());
-        System.out.println("  Total facultades: " + e.getTotalFacultades());
-        System.out.println("  Total vistas    : " + e.getTotalVistas());
-
-        System.out.println("\n  -- Top 3 por vistas --");
-        List<Proyecto> topVistas = getTopPorVistas(3);
-        if (topVistas.isEmpty()) {
-            System.out.println("  (sin proyectos aun)");
-        } else {
-            for (Proyecto p : topVistas)
-                System.out.println("  [" + p.getCantidadVistas() + " vistas] " + p.getTitulo());
-        }
-
-        System.out.println("\n  -- Subidos recientemente --");
-        List<Proyecto> recientes = getSubidosRecientemente(3);
-        if (recientes.isEmpty()) {
-            System.out.println("  (sin proyectos aun)");
-        } else {
-            for (Proyecto p : recientes)
-                System.out.println("  " + p.getTitulo() + " - " + p.getFechaSubida());
-        }
-
-        System.out.println("================================================");
-    }
 }
