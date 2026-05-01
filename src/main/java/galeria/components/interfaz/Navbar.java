@@ -48,7 +48,7 @@ public class Navbar extends HBox {
         links.setAlignment(Pos.CENTER);
 
         // Bajamos los links un poco para que se alineen visualmente con el texto del Logo
-        links.setTranslateY(3);
+        links.setTranslateY(4);
 
         // Creamos los links. El primero (Inicio) empieza activo por defecto.
         VBox link1 = createAnimatedLink("Inicio", true);
