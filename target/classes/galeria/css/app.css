@@ -65,7 +65,7 @@
     -fx-border-radius: 40;
     -fx-border-width: 1;
     /* Sombra muy suave */
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8);
+    /*-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8); */
 }
 
 /* Forzar Manrope en componentes específicos */
