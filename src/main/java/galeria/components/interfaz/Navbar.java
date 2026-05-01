@@ -1,108 +1,123 @@
 package galeria.components.interfaz;
 
+import galeria.app.MainApp;
 import galeria.util.Animations;
-import galeria.util.Colors; // Importamos nuevas variables
+import galeria.util.Colors;
+import galeria.components.views.Inicio;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import org.kordamp.ikonli.javafx.FontIcon;
-import org.kordamp.ikonli.fontawesome5.FontAwesomeRegular;
-import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import io.github.palexdev.materialfx.controls.MFXButton;
 
 public class Navbar extends HBox {
+    private Label activeLabel = null;
+    private Rectangle activeLine = null;
 
     public Navbar() {
-        // 1. Estilo de la Barra (Forma de Píldora)
         this.setAlignment(Pos.CENTER_LEFT);
-        this.setPadding(new Insets(10, 20, 10, 20));
-        this.setSpacing(30);
+        this.setPadding(new Insets(12, 30, 12, 30));
+        this.setSpacing(40);
+        this.getStyleClass().add("glass-nav");
 
-        // El fondo azul clarito y redondeado de la imagen
-        // Para que sea dinámico según tu clase Colors:
-        String fondo = "#" + Colors.FONDO_NAV.toString().substring(2, 8);
-        this.setStyle("-fx-background-color: " + fondo + "; " +
-                "-fx-background-radius: 50; " +
-                "-fx-margin: 10 20 10 20;");
+        // ---------- LOGO (Alineado con los links) ----------
+        StackPane logoIcon = new StackPane();
+        Circle bg = new Circle(16, Color.web("#3F68E4"));
+        FontIcon icon = new FontIcon("fas-cube");
+        icon.setIconSize(16);
+        icon.setIconColor(Color.WHITE);
+        logoIcon.getChildren().addAll(bg, icon);
 
-        // ---------- LOGO ----------
-        StackPane logoBox = new StackPane();
-        Circle logoBg = new Circle(12, Colors.PRINCIPAL); // Usamos variable
-
-        FontIcon cubeIcon = new FontIcon("fas-cube");
-        cubeIcon.setIconSize(12);
-        cubeIcon.setIconColor(Colors.BLANCO);
-        logoBox.getChildren().addAll(logoBg, cubeIcon);
-
-        logoBox.setTranslateY(1);
-
+        HBox logoText = new HBox(0);
+        logoText.setAlignment(Pos.CENTER_LEFT); // Alineación corregida
         Label uni = new Label("Uni");
-        uni.setStyle("-fx-font-size: 20px; -fx-font-weight: 900;");
-        uni.setTranslateY(4);
+        uni.setStyle("-fx-font-family: 'Manrope Bold'; -fx-font-size: 22px; -fx-text-fill: #1f2937;");
         Label repo = new Label("Repo");
-        repo.setTextFill(Colors.ACCENTO);
-        repo.setTranslateY(4);
-        repo.setStyle("-fx-font-size: 20px; -fx-font-weight: 900;");
+        repo.setStyle("-fx-font-family: 'Manrope Bold'; -fx-font-size: 22px; -fx-text-fill: #f97316;");
+        logoText.getChildren().addAll(uni, repo);
 
-
-        HBox logo = new HBox(8, logoBox, new HBox(0, uni, repo));
+        HBox logo = new HBox(10, logoIcon, logoText);
         logo.setAlignment(Pos.CENTER_LEFT);
 
         // ---------- LINKS ----------
-        HBox links = new HBox(25);
+        HBox links = new HBox(30);
         links.setAlignment(Pos.CENTER);
-        links.getChildren().addAll(
-                navLink("Inicio", true),
-                navLink("Explorar Catálogo", false),
-                navLink("Sobre Nosotras", false)
-        );
+
+        links.setTranslateY(3);
+
+        // Creamos los links. El primero (Inicio) empieza activo por defecto.
+        VBox link1 = createAnimatedLink("Inicio", false);
+        VBox link2 = createAnimatedLink("Explorar Catálogo", false);
+        VBox link3 = createAnimatedLink("Sobre Nosotras", false);
+
+        links.getChildren().addAll(link1, link2, link3);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        // ---------- BOTÓN LOGIN (AZUL Y REDONDEADO) ----------
-        // Cambiamos USER_CIRCLE por el icono USER (fas-user)
-        FontIcon userIcon = new FontIcon("far-user");
-        userIcon.setIconColor(Colors.BLANCO);
-        userIcon.setIconSize(12); // Bajamos un pelín el tamaño para que se vea más elegante
 
-        // ---------- BOTÓN LOGIN CON MATERIALFX ----------
+        // ---------- LOGIN ----------
+        FontIcon userIcon = new FontIcon("far-user");
+        userIcon.setIconColor(Color.WHITE); // Icono blanco como el texto
+        userIcon.setIconSize(14);
+
         MFXButton loginBtn = new MFXButton("Iniciar Sesión", userIcon);
         loginBtn.setGraphicTextGap(10);
-
-        // Configuración de colores y animaciones de MaterialFX
-        loginBtn.setRippleColor(Color.WHITE); // Color de la onda al hacer clic
-        loginBtn.setRippleAnimateBackground(true); // Anima el fondo con el clic
-
-        // Mantenemos tu estilo visual pero aplicado al componente MFX
-        String azulBoton = "#" + Colors.PRINCIPAL.toString().substring(2, 8);
         loginBtn.setStyle(
-                "-fx-background-color: " + azulBoton + "; " +
-                        "-fx-text-fill: white; " +
-                        "-fx-font-weight: medium; " +
-                        "-fx-background-radius: 30; " +
-                        "-fx-padding: 8 22; " +
-                        "-fx-cursor: hand;"
+                "-fx-background-color: #3F68E4; -fx-text-fill: white; " +
+                        "-fx-font-family: 'Manrope SemiBold'; -fx-background-radius: 25; " +
+                        "-fx-padding: 10 25; -fx-cursor: hand;"
         );
-
-// Mantenemos tu animación de "levante" para que tenga doble efecto pro
-        Animations.attachHoverLift(loginBtn);
 
         this.getChildren().addAll(logo, links, spacer, loginBtn);
     }
 
-    private Label navLink(String text, boolean active) {
-        Label l = new Label(text);
-        l.setTextFill(active ? Colors.ACCENTO : Colors.TEXTO_OSCURO);
-        l.setStyle("-fx-font-size: 14px; -fx-font-weight: medium; -fx-cursor: hand;");
+    private VBox createAnimatedLink(String text, boolean isActive) {
+        Label label = new Label(text);
+        label.setStyle("-fx-font-family: 'Manrope Medium'; -fx-font-size: 15px; -fx-cursor: hand;");
+        label.setTextFill(isActive ? Color.web("#3F68E4") : Color.web("#4b5563"));
 
-        if(!active) {
-            l.setOnMouseEntered(e -> l.setTextFill(Colors.ACCENTO));
-            l.setOnMouseExited(e -> l.setTextFill(Colors.TEXTO_OSCURO));
+        // La línea de abajo (invisible al inicio si no está activo)
+        Rectangle line = new Rectangle(0, 2, Color.web("#3F68E4"));
+        line.setArcHeight(2);
+        line.setArcWidth(2);
+
+        if (isActive) {
+            line.setWidth(40); // Ancho inicial para el activo
+            activeLabel = label;
+            activeLine = line;
         }
-        return l;
+
+        VBox container = new VBox(2, label, line);
+        container.setAlignment(Pos.CENTER);
+
+        // EVENTOS
+        container.setOnMouseClicked(e -> {
+            // Desactivar anterior
+            if (activeLabel != null) {
+                activeLabel.setTextFill(Color.web("#4b5563"));
+                Animations.lineShrink(activeLine);
+            }
+            // Activar este
+            label.setTextFill(Color.web("#3F68E4"));
+            Animations.lineExpand(line, label.getWidth());
+            activeLabel = label;
+            activeLine = line;
+
+            if (text.equals("Inicio")) MainApp.setView(new Inicio());
+        });
+
+        // Hover suave solo si no es el activo
+        container.setOnMouseEntered(e -> {
+            if (activeLabel != label) label.setTextFill(Color.web("#3F68E4"));
+        });
+        container.setOnMouseExited(e -> {
+            if (activeLabel != label) label.setTextFill(Color.web("#4b5563"));
+        });
+
+        return container;
     }
 }

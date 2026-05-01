@@ -1,9 +1,11 @@
 package galeria.app;
 
 import galeria.components.interfaz.Navbar;
+import galeria.components.views.Inicio; // Importamos tu vista de Inicio
 import javafx.application.Application;
 import javafx.animation.FadeTransition;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
@@ -12,42 +14,41 @@ import javafx.util.Duration;
 
 public class MainApp extends Application {
 
-    // Hacemos el root estático o accesible si necesitas cambiar de vista desde otros controladores
+    // El contenedor principal es estático para que setView funcione desde fuera
     private static BorderPane root = new BorderPane();
 
     @Override
     public void start(Stage stage) {
-        // 1. Configuración de la Navbar Global
+        root.setStyle("-fx-background-color: #ffffff;");
+        // 1. Instanciamos la Navbar (que está en galeria.components.interfaz)
         Navbar navbar = new Navbar();
 
-        // Contenedor para darle el aire "flotante" de la imagen 2
+        // Contenedor para el margen superior del Navbar
         StackPane navbarWrapper = new StackPane(navbar);
         navbarWrapper.setPadding(new Insets(20, 40, 10, 40));
-
-        // 2. Integración en el "Marco" (BorderPane)
+        navbarWrapper.setStyle("-fx-background-color: transparent;");
+        navbarWrapper.setPickOnBounds(false);
+        // 2. Colocamos la Navbar fija arriba
         root.setTop(navbarWrapper);
 
-        // Aquí es donde irán tus vistas (Inicio, Catálogo, etc.)
-        // Por ahora lo dejamos vacío o con un placeholder
-        // root.setCenter(new InicioView());
+        // 3. NO cargamos Inicio por defecto aquí para que esté vacío al abrir,
+        // o puedes poner root.setCenter(new TuVistaDeLogin()); mas adelante.
 
-        // 3. Configuración de la Escena
+        // 4. Configuración de la Escena
         Scene scene = new Scene(root, 1280, 820);
 
-        // Carga de estilos globales (Fonts y CSS)
         try {
             String css = getClass().getResource("/galeria/css/app.css").toExternalForm();
             scene.getStylesheets().add(css);
         } catch (Exception e) {
-            System.err.println("No se pudo cargar el archivo CSS. Verifica la ruta en resources.");
+            System.err.println("Error: No se encontró el archivo CSS en resources/galeria/css/app.css");
         }
 
-        // 4. Configuración del Stage
         stage.setTitle("UniRepo - Galería de Proyectos");
         stage.setScene(scene);
         stage.show();
 
-        // 5. Animación de entrada (Fade In)
+        // Animación de entrada suave
         root.setOpacity(0);
         FadeTransition ft = new FadeTransition(Duration.millis(800), root);
         ft.setFromValue(0);
@@ -56,11 +57,11 @@ public class MainApp extends Application {
     }
 
     /**
-     * Método útil para cambiar el contenido central desde cualquier parte de la app.
-     * @param nuevaVista El componente (Node) que quieres mostrar.
+     * Este método es el que usarás en el Navbar para cambiar la vista.
      */
-    public static void setView(javafx.scene.Node nuevaVista) {
+    public static void setView(Node nuevaVista) {
         root.setCenter(nuevaVista);
+        root.requestLayout(); // <--- Esto obliga a la app a refrescarse visualmente
     }
 
     public static void main(String[] args) {

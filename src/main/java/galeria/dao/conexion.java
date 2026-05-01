@@ -11,7 +11,7 @@ public class conexion {
             con = DriverManager.getConnection(
                 "jdbc:mysql://localhost:3306/galeria_db",
                 "root",
-                "1234"
+                "s7jeriKo8"
             );
             System.out.println("conexion exitosa ");
 

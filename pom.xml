@@ -56,6 +56,13 @@
             <artifactId>materialfx</artifactId>
             <version>11.13.5</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>17.0.2</version> <!-- Asegúrate de que sea la misma versión que tus otros javafx-* -->
+            <classifier>win</classifier> <!-- O 'mac' / 'linux' según tu SO, aunque a veces no es necesario -->
+        </dependency>
     </dependencies>
 
 

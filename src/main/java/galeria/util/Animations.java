@@ -4,6 +4,7 @@ import javafx.animation.*;
 import javafx.scene.Node;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
 /** Helpers de animación reutilizables para toda la app. */
@@ -86,5 +87,44 @@ public final class Animations {
         tt.setCycleCount(Animation.INDEFINITE);
         tt.setInterpolator(Interpolator.EASE_BOTH);
         tt.play();
+    }
+
+    /**
+     * Anima el ancho de un rectángulo desde 0 hasta su valor objetivo.
+     */
+    public static void lineExpand(Rectangle line, double targetWidth) {
+        Timeline timeline = new Timeline();
+        KeyValue kv = new KeyValue(line.widthProperty(), targetWidth, Interpolator.EASE_BOTH);
+        KeyFrame kf = new KeyFrame(Duration.millis(300), kv);
+        timeline.getKeyFrames().add(kf);
+        timeline.play();
+    }
+
+    /**
+     * Reduce el ancho de un rectángulo a 0.
+     */
+    public static void lineShrink(Rectangle line) {
+        Timeline timeline = new Timeline();
+        KeyValue kv = new KeyValue(line.widthProperty(), 0, Interpolator.EASE_BOTH);
+        KeyFrame kf = new KeyFrame(Duration.millis(250), kv);
+        timeline.getKeyFrames().add(kf);
+        timeline.play();
+    }
+
+    public static void fadeInVideo(Node node, int delayMillis) {
+        node.setOpacity(0);
+        node.setScaleX(1.1); // Empieza un poco más grande
+        node.setScaleY(1.1);
+
+        FadeTransition fade = new FadeTransition(Duration.millis(1500), node);
+        fade.setToValue(1);
+
+        ScaleTransition scale = new ScaleTransition(Duration.millis(2000), node);
+        scale.setToX(1);
+        scale.setToY(1);
+
+        ParallelTransition pt = new ParallelTransition(fade, scale);
+        pt.setDelay(Duration.millis(delayMillis));
+        pt.play();
     }
 }

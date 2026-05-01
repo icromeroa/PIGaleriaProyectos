@@ -1,18 +1,34 @@
 /* Registro de las fuentes */
 @font-face {
-    font-family: 'Manrope';
-    src: url('../fonts/Manrope.ttf');
+    src: url('../fonts/Manrope-Regular.ttf');
+    -fx-font-family: "Manrope";
 }
-
 @font-face {
-    font-family: 'Manrope Bold';
-    src: url('../fonts/Manrope.ttf');
-    font-weight: bold;
+    src: url('../fonts/Manrope-Medium.ttf');
+    -fx-font-family: "Manrope Medium";
+}
+@font-face {
+    src: url('../fonts/Manrope-SemiBold.ttf');
+    -fx-font-family: "Manrope SemiBold";
+}
+@font-face {
+    src: url('../fonts/Manrope-Bold.ttf');
+    -fx-font-family: "Manrope Bold";
 }
 
 /* Aplicación Global */
 .root {
     -fx-font-family: "Manrope";
+    -fx-background-color: #ffffff;
+}
+
+.scroll-pane {
+    -fx-background-color: #ffffff;
+    -fx-background: #ffffff;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: #ffffff;
 }
 
 .navbar {
@@ -38,4 +54,37 @@
     -fx-font-weight: bold;
     -fx-background-radius: 8;
     -fx-cursor: hand;
+}
+
+/* Estilo para el Navbar tipo Vidrio (Glassmorphism) */
+.glass-nav {
+    /* Fondo blanco con 70% de opacidad para que se vea lo de atrás */
+    -fx-background-color: rgba(238, 242, 255, 0.85);
+    -fx-background-radius: 40;
+    -fx-border-color: rgba(255, 255, 255, 0.4);
+    -fx-border-radius: 40;
+    -fx-border-width: 1;
+    /* Sombra muy suave */
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8);
+}
+
+/* Forzar Manrope en componentes específicos */
+.label, .button {
+    -fx-font-family: "Manrope";
+}
+
+/* Efecto para los links */
+.nav-link {
+    -fx-font-family: "Manrope Medium";
+    -fx-font-size: 15px;
+    -fx-text-fill: #4b5563;
+    -fx-transition: all 0.3s;
+}
+
+.nav-link-active {
+    -fx-font-family: "Manrope Bold";
+    -fx-text-fill: #3F68E4;
+    /* Línea debajo opcional como la imagen 1 */
+    -fx-border-color: transparent transparent #3F68E4 transparent;
+    -fx-border-width: 0 0 2 0;
 }

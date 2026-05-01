@@ -88,4 +88,34 @@ public class CategoriaDAO {
             System.out.println("Error al eliminar categoria: " + e.getMessage());
         }
     }
+
+    public List<Object[]> listarTopCategoriasPorProyectos(int limite) {
+        List<Object[]> lista = new ArrayList<>();
+        String sql = """
+        SELECT c.id_categoria, c.nombre_categoria, c.descripcion, c.icono,
+               COUNT(p.id_proyecto) as total_proyectos
+        FROM categorias c
+        LEFT JOIN proyectos p ON p.id_categoria = c.id_categoria
+        GROUP BY c.id_categoria
+        ORDER BY total_proyectos DESC
+        LIMIT ?
+        """;
+        try (Connection con = conexion.conectar();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, limite);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(new Object[]{
+                            rs.getInt("id_categoria"),
+                            rs.getString("nombre_categoria"),
+                            rs.getString("descripcion"),
+                            rs.getInt("total_proyectos")
+                    });
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error listarTopCategorias: " + e.getMessage());
+        }
+        return lista;
+    }
 }
