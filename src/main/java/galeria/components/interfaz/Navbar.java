@@ -51,7 +51,7 @@ public class Navbar extends HBox {
         links.setTranslateY(4);
 
         // Creamos los links. El primero (Inicio) empieza activo por defecto.
-        VBox link1 = createAnimatedLink("Inicio", true);
+        VBox link1 = createAnimatedLink("Inicio", false);
         VBox link2 = createAnimatedLink("Explorar Catálogo", false);
         VBox link3 = createAnimatedLink("Sobre Nosotras", false);
 

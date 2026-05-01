@@ -13,7 +13,7 @@ public class ProyectoDAO {
 	private Connection conectar() throws SQLException {
 	    String url = "jdbc:mysql://localhost:3306/galeria_db?useSSL=false&serverTimezone=UTC";
 	    String user = "root";
-	    String pass = "1234";
+	    String pass = "s7jeriKo8";
 
 	    return DriverManager.getConnection(url, user, pass);
 	}
@@ -189,5 +189,68 @@ public class ProyectoDAO {
         }
 
         return 1;
+    }
+
+    public List<Proyecto> listarTopPorVistas(int limite) {
+        List<Proyecto> lista = new ArrayList<>();
+        String sql = """
+        SELECT p.*, c.nombre_categoria, f.nombre_facultad
+        FROM proyectos p
+        LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
+        LEFT JOIN facultades f ON p.id_facultad = f.id_facultad
+        ORDER BY p.cantidad_vistas DESC
+        LIMIT ?
+        """;
+        try (Connection con = conectar();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, limite);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Proyecto p = new Proyecto(
+                            rs.getInt("id_proyecto"),
+                            rs.getString("titulo"),
+                            rs.getString("resumen"),
+                            rs.getString("archivo_url") != null ? rs.getString("archivo_url") : "",
+                            rs.getString("portada_url") != null ? rs.getString("portada_url") : "",
+                            rs.getInt("cantidad_vistas"),
+                            rs.getInt("cantidad_guardados"),
+                            rs.getDate("fecha_subida"),
+                            new ArrayList<>(), new ArrayList<>(),
+                            null, null, null, null,
+                            null, new ArrayList<>()
+                    );
+                    lista.add(p);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("[ERROR TOP VISTAS] " + e.getMessage());
+        }
+        return lista;
+    }
+
+    public int[] getEstadisticasGenerales() {
+        // [totalVistas, totalProyectos, totalGuardados, totalUsuarios]
+        String sql = """
+        SELECT 
+            (SELECT COALESCE(SUM(cantidad_vistas), 0) FROM proyectos),
+            (SELECT COUNT(*) FROM proyectos),
+            (SELECT COALESCE(SUM(cantidad_guardados), 0) FROM proyectos),
+            (SELECT COUNT(*) FROM usuarios)
+        """;
+        try (Connection con = conectar();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return new int[]{
+                        rs.getInt(1), // vistas
+                        rs.getInt(2), // proyectos
+                        rs.getInt(3), // guardados
+                        rs.getInt(4)  // usuarios
+                };
+            }
+        } catch (SQLException e) {
+            System.out.println("[ERROR STATS] " + e.getMessage());
+        }
+        return new int[]{0, 0, 0, 0};
     }
 }

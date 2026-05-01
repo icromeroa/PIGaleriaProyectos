@@ -1,7 +1,11 @@
 package galeria.util;
 
 import javafx.animation.*;
+import javafx.beans.value.ChangeListener;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -125,6 +129,71 @@ public final class Animations {
 
         ParallelTransition pt = new ParallelTransition(fade, scale);
         pt.setDelay(Duration.millis(delayMillis));
+        pt.play();
+    }
+
+    /** Anima un Label de 0 al valor objetivo. Llama esto cuando el nodo ya esté visible. */
+    public static void animarConteo(Label label, int valorFinal, String estilo) {
+        if (valorFinal <= 0) {
+            label.setText("0");
+            return;
+        }
+        int pasos = 45; // menos pasos = más rápido
+        double duracionTotal = 900; // 0.9 segundos total
+        double intervalo = duracionTotal / pasos;
+
+        final int[] paso = {0};
+
+        Timeline tl = new Timeline();
+        tl.setCycleCount(pasos);
+        tl.getKeyFrames().add(new KeyFrame(
+                Duration.millis(intervalo),
+                e -> {
+                    paso[0]++;
+                    double t = (double) paso[0] / pasos;
+                    // smoothstep easing
+                    double prog = t * t * (3 - 2 * t);
+                    int val = (int)(valorFinal * prog);
+                    label.setText(String.valueOf(val));
+                    label.setStyle(estilo);
+                }
+        ));
+        tl.setOnFinished(e -> {
+            label.setText(String.valueOf(valorFinal));
+            label.setStyle(estilo);
+        });
+        tl.play();
+    }
+
+    public static void animateOnScroll(Node node, ScrollPane scrollPane, Runnable animation) {
+        final boolean[] animated = {false};
+        ChangeListener<Number> scrollListener = (obs, oldVal, newVal) -> {
+            if (animated[0]) return;
+
+            Bounds boundsInScene = node.localToScene(node.getBoundsInLocal());
+            Bounds scrollBounds = scrollPane.localToScene(scrollPane.getBoundsInLocal());
+
+            if (scrollBounds.intersects(boundsInScene)) {
+                animated[0] = true;
+                animation.run();
+            }
+        };
+        scrollPane.vvalueProperty().addListener(scrollListener);
+    }
+
+    /** Animación de entrada escalonada para las listas. */
+    public static void revealProjectCard(Node node, double delayMs) {
+        node.setOpacity(0);
+        node.setTranslateX(-20);
+
+        FadeTransition fade = new FadeTransition(Duration.millis(600), node);
+        fade.setToValue(1);
+
+        TranslateTransition move = new TranslateTransition(Duration.millis(600), node);
+        move.setToX(0);
+
+        ParallelTransition pt = new ParallelTransition(fade, move);
+        pt.setDelay(Duration.millis(delayMs));
         pt.play();
     }
 }
