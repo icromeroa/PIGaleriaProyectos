@@ -21,10 +21,12 @@ public class MainLayout extends BorderPane {
 
         // 4. Por defecto, mostramos la pantalla de Inicio
         // setCenter(new InicioView());
+
     }
 
     // Este método lo usarás para cambiar de página
     public void cargarPagina(Node nuevaPagina) {
         this.setCenter(nuevaPagina);
     }
+
 }
