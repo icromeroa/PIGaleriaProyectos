@@ -139,7 +139,7 @@ public final class Animations {
             return;
         }
         int pasos = 45; // menos pasos = más rápido
-        double duracionTotal = 900; // 0.9 segundos total
+        double duracionTotal = 3000; // 3 segundos total
         double intervalo = duracionTotal / pasos;
 
         final int[] paso = {0};
