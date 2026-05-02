@@ -253,4 +253,103 @@ public class ProyectoDAO {
         }
         return new int[]{0, 0, 0, 0};
     }
+
+    // Busqueda predictiva por titulo
+    public List<Proyecto> buscarPorTitulo(String texto) {
+        List<Proyecto> lista = new ArrayList<>();
+        String sql = """
+        SELECT p.*, a.nombre_autor
+        FROM proyectos p
+        LEFT JOIN proyecto_autores pa ON p.id_proyecto = pa.id_proyecto
+        LEFT JOIN autores a ON pa.id_autor = a.id_autor
+        WHERE p.titulo LIKE ?
+        ORDER BY p.cantidad_vistas DESC
+        """;
+        try (Connection con = conectar();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, "%" + texto + "%");
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(mapearProyecto(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("[ERROR BUSCAR TITULO] " + e.getMessage());
+        }
+        return lista;
+    }
+
+    // Filtrar por programa, materia, semestre, categoria (cualquier combinacion)
+    public List<Proyecto> filtrar(Integer idPrograma, Integer idMateria,
+                                  Integer idSemestre, Integer idCategoria) {
+        List<Proyecto> lista = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+        SELECT p.*, a.nombre_autor
+        FROM proyectos p
+        LEFT JOIN proyecto_autores pa ON p.id_proyecto = pa.id_proyecto
+        LEFT JOIN autores a ON pa.id_autor = a.id_autor
+        WHERE 1=1
+        """);
+        if (idPrograma  != null) sql.append(" AND p.id_programa = ").append(idPrograma);
+        if (idMateria   != null) sql.append(" AND p.id_materia = ").append(idMateria);
+        if (idSemestre  != null) sql.append(" AND p.id_semestre = ").append(idSemestre);
+        if (idCategoria != null) sql.append(" AND p.id_categoria = ").append(idCategoria);
+        sql.append(" ORDER BY p.cantidad_vistas DESC");
+
+        try (Connection con = conectar();
+             PreparedStatement ps = con.prepareStatement(sql.toString());
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) lista.add(mapearProyecto(rs));
+        } catch (SQLException e) {
+            System.out.println("[ERROR FILTRAR] " + e.getMessage());
+        }
+        return lista;
+    }
+
+    // Listar todos con autor incluido
+    public List<Proyecto> listarTodosConAutor() {
+        List<Proyecto> lista = new ArrayList<>();
+        String sql = """
+        SELECT p.*, a.nombre_autor
+        FROM proyectos p
+        LEFT JOIN proyecto_autores pa ON p.id_proyecto = pa.id_proyecto
+        LEFT JOIN autores a ON pa.id_autor = a.id_autor
+        ORDER BY p.fecha_subida DESC
+        """;
+        try (Connection con = conectar();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) lista.add(mapearProyecto(rs));
+        } catch (SQLException e) {
+            System.out.println("[ERROR LISTAR CON AUTOR] " + e.getMessage());
+        }
+        return lista;
+    }
+
+    // Helper privado para no repetir el mapeo
+    private Proyecto mapearProyecto(ResultSet rs) throws SQLException {
+        Proyecto p = new Proyecto(
+                rs.getInt("id_proyecto"),
+                rs.getString("titulo"),
+                rs.getString("resumen"),
+                rs.getString("archivo_url") != null ? rs.getString("archivo_url") : "",
+                rs.getString("portada_url") != null ? rs.getString("portada_url") : "",
+                rs.getInt("cantidad_vistas"),
+                rs.getInt("cantidad_guardados"),
+                rs.getDate("fecha_subida"),
+                new ArrayList<>(), new ArrayList<>(),
+                null, null, null, null, null, new ArrayList<>()
+        );
+        // Agregar autor si viene en el ResultSet
+        try {
+            String nombreAutor = rs.getString("nombre_autor");
+            if (nombreAutor != null) {
+                p.getListaAutores().add(
+                        new galeria.model.Autor(0, nombreAutor, "")
+                );
+            }
+        } catch (SQLException ignored) {}
+        return p;
+    }
+
 }

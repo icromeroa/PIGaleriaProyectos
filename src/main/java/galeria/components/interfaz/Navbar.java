@@ -114,9 +114,9 @@ public class Navbar extends HBox {
         VBox container = new VBox(2, label, line);
         container.setAlignment(Pos.CENTER);
 
-        // EVENTOS DE CLIC Y ANIMACIÓN
+            // ---------- EVENTOS DE CLIC Y ANIMACIÓN ----------
         container.setOnMouseClicked(e -> {
-            // 1. Desactivar el link que estaba activo antes
+            // 1. Desactivar el link anterior
             if (activeLabel != null && activeLabel != label) {
                 activeLabel.setTextFill(Color.web("#4b5563"));
                 Animations.lineShrink(activeLine);
@@ -130,8 +130,20 @@ public class Navbar extends HBox {
                 activeLine = line;
             }
 
-            // 3. Navegación
-            if (text.equals("Inicio")) MainApp.setView(new Inicio());
+            // 3. LÓGICA DE NAVEGACIÓN ACTIVADA
+            switch (text) {
+                case "Inicio":
+                    MainApp.setView(new galeria.components.views.Inicio());
+                    break;
+                case "Explorar Catálogo":
+                    // Navega a la vista de catálogo que acabamos de crear
+                    MainApp.setView(new galeria.components.views.Catalogo());
+                    break;
+                case "Sobre Nosotras":
+                    // Aquí podrías poner: MainApp.setView(new SobreNosotras());
+                    System.out.println("Navegando a Sobre Nosotras...");
+                    break;
+            }
         });
 
         // Hover suave (solo cambia el color si no está activo)
