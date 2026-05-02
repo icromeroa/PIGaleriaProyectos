@@ -68,6 +68,13 @@ public class Catalogo extends ScrollPane {
         HBox.setHgrow(campoSearch, Priority.ALWAYS);
         searchBox.getChildren().addAll(new FontIcon("fas-search"), campoSearch);
 
+        // ── APLICAR ANIMACIONES DE ENTRADA ────────────────
+        // Usamos slideUpFadeIn con retardos diferentes para un efecto secuencial
+        Animations.slideUpFadeIn(lblTitulo, 100);    // Aparece primero
+        Animations.slideUpFadeIn(lblSubtitulo, 300); // Aparece un poco después
+        Animations.slideUpFadeIn(searchBox, 500);    // El buscador entra al final
+        // ──────────────────────────────────────────────────
+
         // ── Filtros con persistencia de color ──────────────
         HBox filtrosRow = new HBox(15);
         filtrosRow.setAlignment(Pos.CENTER);
