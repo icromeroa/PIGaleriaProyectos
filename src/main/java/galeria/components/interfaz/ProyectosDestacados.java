@@ -19,7 +19,8 @@ import java.util.List;
 
 public class ProyectosDestacados extends VBox {
 
-    public ProyectosDestacados() {
+    // Se agrega el parámetro onExplorar para la navegación
+    public ProyectosDestacados(Runnable onExplorar) {
         setSpacing(24);
         setAlignment(Pos.TOP_LEFT);
 
@@ -55,7 +56,6 @@ public class ProyectosDestacados extends VBox {
         grid.setVgap(16);
         grid.setMaxWidth(Double.MAX_VALUE);
 
-        // 🔥 3 columnas EXACTAMENTE iguales
         for (int i = 0; i < 3; i++) {
             ColumnConstraints col = new ColumnConstraints();
             col.setPercentWidth(33.3333);
@@ -63,20 +63,16 @@ public class ProyectosDestacados extends VBox {
             grid.getColumnConstraints().add(col);
         }
 
-        // 🔥 2 filas iguales
         for (int i = 0; i < 2; i++) {
             RowConstraints row = new RowConstraints();
             row.setVgrow(Priority.ALWAYS);
             grid.getRowConstraints().add(row);
         }
 
-        // ── Insertar cards ─────────────────────────────
         for (int i = 0; i < proyectos.size() && i < 6; i++) {
             VBox card = crearCard(proyectos.get(i));
-
             int col = i % 3;
             int row = i / 3;
-
             grid.add(card, col, row);
             Animations.slideUpFadeIn(card, 100L * i);
         }
@@ -92,31 +88,24 @@ public class ProyectosDestacados extends VBox {
         btnExplorar.setOnMouseEntered(e -> estilizarBoton(btnExplorar, true));
         btnExplorar.setOnMouseExited(e -> estilizarBoton(btnExplorar, false));
 
-        btnRow.getChildren().add(btnExplorar);
+        // Acción de redirección
+        btnExplorar.setOnAction(e -> {
+            if (onExplorar != null) onExplorar.run();
+        });
 
+        btnRow.getChildren().add(btnExplorar);
         getChildren().addAll(titulo, grid, btnRow);
     }
 
-    // ── 🔥 ÚNICA CARD ─────────────────────────────────
     private VBox crearCard(Proyecto p) {
         VBox card = new VBox();
-
-        // 🔥 tamaño EXACTO
         card.setPrefHeight(180);
         card.setMinHeight(180);
         card.setMaxWidth(Double.MAX_VALUE);
-
         card.setCursor(Cursor.HAND);
-
-        // 🔥 gradiente requerido
-        card.setStyle(
-                "-fx-background-color: linear-gradient(to bottom, #f97316, #2563eb);" +
-                        "-fx-background-radius: 18;"
-        );
-
+        card.setStyle("-fx-background-color: linear-gradient(to bottom, #f97316, #2563eb); -fx-background-radius: 18;");
         aplicarClip(card, 18);
 
-        // Imagen de fondo
         if (p.getPortadaURL() != null && !p.getPortadaURL().isEmpty()) {
             aplicarImagenFondo(card, p.getPortadaURL());
         }
@@ -128,59 +117,36 @@ public class ProyectosDestacados extends VBox {
         info.setPadding(new Insets(14));
 
         Label badge = new Label("PROYECTO");
-        badge.setStyle(
-                "-fx-background-color: rgba(255,255,255,0.2);" +
-                        "-fx-text-fill: white;" +
-                        "-fx-font-size: 9px;" +
-                        "-fx-padding: 3 8;" +
-                        "-fx-background-radius: 4;"
-        );
+        badge.setStyle("-fx-background-color: rgba(255,255,255,0.2); -fx-text-fill: white; -fx-font-size: 9px; -fx-padding: 3 8; -fx-background-radius: 4;");
 
         Label titulo = new Label(p.getTitulo());
         titulo.setWrapText(true);
-        titulo.setStyle(
-                "-fx-font-family: medium ;" +
-                        "-fx-font-size: 14px;" +
-                        "-fx-text-fill: white;"
-        );
+        titulo.setStyle("-fx-font-family: medium ; -fx-font-size: 14px; -fx-text-fill: white;");
 
         Label resumen = new Label(truncar(p.getResumen(), 60));
         resumen.setWrapText(true);
-        resumen.setStyle(
-                "-fx-font-size: 11px;" +
-                        "-fx-text-fill: rgba(255,255,255,0.7);"
-        );
+        resumen.setStyle("-fx-font-size: 11px; -fx-text-fill: rgba(255,255,255,0.7);");
 
         HBox meta = new HBox(6);
         FontIcon icon = new FontIcon("fas-eye");
         icon.setIconSize(11);
         icon.setIconColor(Color.WHITE);
-
         Label vistas = new Label(p.getCantidadVistas() + " vistas");
         vistas.setStyle("-fx-font-size: 10px; -fx-text-fill: white;");
 
         meta.getChildren().addAll(icon, vistas);
-
         info.getChildren().addAll(badge, titulo, resumen, meta);
         card.getChildren().addAll(spacer, info);
-
         Animations.attachHoverLift(card);
         return card;
     }
 
-    // ── Helpers ───────────────────────────────────────
     private void aplicarImagenFondo(VBox card, String rutaRelativa) {
         try {
             var url = getClass().getResource("/" + rutaRelativa);
             if (url != null) {
                 Image img = new Image(url.toExternalForm(), true);
-                BackgroundImage bgImg = new BackgroundImage(
-                        img,
-                        BackgroundRepeat.NO_REPEAT,
-                        BackgroundRepeat.NO_REPEAT,
-                        BackgroundPosition.CENTER,
-                        new BackgroundSize(100, 100, true, true, false, true)
-                );
+                BackgroundImage bgImg = new BackgroundImage(img, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, new BackgroundSize(100, 100, true, true, false, true));
                 card.setBackground(new Background(bgImg));
             }
         } catch (Exception e) {
@@ -198,14 +164,7 @@ public class ProyectosDestacados extends VBox {
     }
 
     private void estilizarBoton(Button btn, boolean hover) {
-        btn.setStyle(
-                "-fx-background-color: " + (hover ? "#2d55c7" : "#3F68E4") + ";" +
-                        "-fx-text-fill: white;" +
-                        "-fx-font-family: 'Manrope-SemiBold';" +
-                        "-fx-font-size: 14px;" +
-                        "-fx-background-radius: 40;" +
-                        "-fx-padding: 13 32;"
-        );
+        btn.setStyle("-fx-background-color: " + (hover ? "#2d55c7" : "#3F68E4") + "; -fx-text-fill: white; -fx-font-family: 'Manrope-SemiBold'; -fx-font-size: 14px; -fx-background-radius: 40; -fx-padding: 13 32;");
     }
 
     private String truncar(String texto, int max) {

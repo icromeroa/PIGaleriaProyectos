@@ -24,8 +24,13 @@ public class Inicio extends ScrollPane {
         sectores.setMaxWidth(Double.MAX_VALUE);
         sectores.prefWidthProperty().bind(content.widthProperty().subtract(80));
 
-        // Proyectos destacados
-        ProyectosDestacados destacados = new ProyectosDestacados();
+        // Proyectos destacados instanciado con la lógica de navegación
+        ProyectosDestacados destacados = new ProyectosDestacados(() -> {
+            // Suponiendo que el padre de este ScrollPane es el contenedor principal (StackPane o BorderPane)
+            // Aquí instanciamos el catálogo y lo mostramos
+            Catalogo catalogo = new Catalogo();
+            this.setContent(catalogo);
+        });
         destacados.setMaxWidth(Double.MAX_VALUE);
         destacados.prefWidthProperty().bind(content.widthProperty().subtract(80));
 
@@ -46,13 +51,11 @@ public class Inicio extends ScrollPane {
                         "-fx-border-color: transparent;"
         );
 
+        // Se asume que ListadoProyectosDestacados requiere el ScrollPane padre
         ListadoProyectosDestacados listadoEspecial = new ListadoProyectosDestacados(this);
         listadoEspecial.setMaxWidth(Double.MAX_VALUE);
         listadoEspecial.prefWidthProperty().bind(content.widthProperty().subtract(80));
 
         content.getChildren().add(listadoEspecial);
-
-
-
     }
 }
