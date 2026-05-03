@@ -52,7 +52,7 @@ public class DetalleProyecto extends ScrollPane {
         // --- SECCIÓN SUPERIOR: INFO PRINCIPAL ---
         HBox mainInfoContainer = new HBox(40);
         mainInfoContainer.setAlignment(Pos.TOP_CENTER);
-        mainInfoContainer.setPadding(new Insets(60, 80, 20, 80));
+        mainInfoContainer.setPadding(new Insets(60, 40, 20, 40));
 
         StackPane marcoImagen = crearSeccionPortada(p);
         VBox fichaInfo = crearFichaDetalle(p);
