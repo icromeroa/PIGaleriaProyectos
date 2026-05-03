@@ -1,8 +1,12 @@
 package galeria.components.interfaz;
 
+import galeria.app.MainApp;
+import galeria.components.views.DetalleProyecto;
 import galeria.model.Proyecto;
+import galeria.model.Usuario;
 import galeria.util.Animations;
 import galeria.util.CardStyle;
+import galeria.util.Sesion;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -19,15 +23,15 @@ public class CardProyecto extends VBox {
     public CardProyecto(Proyecto p, CardStyle estilo) {
         this.proyecto = p;
 
-// Reducimos el padding de 20 a 15 para que la card se sienta "más pequeña"
-// sin forzar medidas fijas que rompan el layout
+        // Reducimos el padding de 20 a 15 para que la card se sienta "más pequeña"
+        // sin forzar medidas fijas que rompan el layout
         this.setPadding(new Insets(15));
         this.setSpacing(6);
         this.setAlignment(Pos.BOTTOM_LEFT);
         this.setCursor(Cursor.HAND);
 
-// Quitamos los setPrefSize fijos para que el contenedor padre
-// maneje el espacio de forma fluida como antes
+        // Quitamos los setPrefSize fijos para que el contenedor padre
+        // maneje el espacio de forma fluida como antes
         this.setMinHeight(160);
 
         configurarContenido();
@@ -35,30 +39,43 @@ public class CardProyecto extends VBox {
         aplicarClip(20);
 
         Animations.attachHoverLift(this);
+
+        // Dentro del constructor de CardProyecto
+        this.setOnMouseClicked(e -> {
+            // 1. Obtenemos el usuario logueado (asumiendo que usas tu clase Sesion en util)
+            Usuario usuarioLogueado = Sesion.getUsuario();
+
+            // 2. Creamos la vista de detalle pasándole el proyecto de esta Card
+            DetalleProyecto vistaDetalle = new DetalleProyecto(this.proyecto, usuarioLogueado);
+
+            // 3. Usamos el método estático de tu MainApp para cambiar la vista
+            MainApp.setView(new DetalleProyecto(this.proyecto, Sesion.getUsuario()));
+        });
+
     }
 
     private void configurarContenido() {
-// 1. Categoría (Badge)
+        // 1. Categoría (Badge)
         Label lblCategoria = new Label("SECURITY"); // Aquí iría p.getCategoria().getNombre()
         lblCategoria.setStyle("-fx-background-color: #F97316; -fx-text-fill: white; " +
                 "-fx-font-size: 9px; -fx-font-weight: bold; -fx-padding: 4 10; " +
                 "-fx-background-radius: 8;");
 
-// 2. Título
+        // 2. Título
         Label lblTitulo = new Label(proyecto.getTitulo());
         lblTitulo.setWrapText(true);
         lblTitulo.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1f2937;");
 
-// 3. Resumen
+        // 3. Resumen
         Label lblResumen = new Label(truncar(proyecto.getResumen(), 80));
         lblResumen.setWrapText(true);
         lblResumen.setStyle("-fx-font-size: 11px; -fx-text-fill: #6b7280;");
 
-// 4. Fila Inferior (Iconos FontAwesome)
+        // 4. Fila Inferior (Iconos FontAwesome)
         HBox footer = new HBox();
         footer.setAlignment(Pos.CENTER_LEFT);
 
-// Vistas (Izquierda)
+        // Vistas (Izquierda)
         HBox vistasBox = new HBox(5);
         vistasBox.setAlignment(Pos.CENTER_LEFT);
         FontIcon iconVistas = new FontIcon("fas-eye");
@@ -71,7 +88,7 @@ public class CardProyecto extends VBox {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-// Fecha (Derecha)
+        // Fecha (Derecha)
         HBox fechaBox = new HBox(5);
         fechaBox.setAlignment(Pos.CENTER_LEFT);
         FontIcon iconFecha = new FontIcon("fas-calendar-alt");
@@ -94,16 +111,16 @@ public class CardProyecto extends VBox {
             return;
         }
 
-// Asegura que empiece con /
+        // Asegura que empiece con /
         String ruta = rutaBD.startsWith("/") ? rutaBD : "/" + rutaBD;
 
         try {
-// Método 1: getResource (classpath)
+        // Método 1: getResource (classpath)
             var resource = getClass().getResource(ruta);
 
             if (resource == null) {
-// Método 2: buscar directamente en src/main/resources
-// útil cuando Maven no copió el archivo al target todavía
+        // Método 2: buscar directamente en src/main/resources
+        // útil cuando Maven no copió el archivo al target todavía
                 java.io.File archivo = new java.io.File(
                         "src/main/resources" + ruta
                 );

@@ -63,6 +63,15 @@ public class MainApp extends Application {
         ft.setFromValue(0);
         ft.setToValue(1);
         ft.play();
+
+    }
+    // Añade esto a MainApp.java
+    public static void aplicarEfectoBlur(boolean activar) {
+        if (activar) {
+            root.setEffect(new javafx.scene.effect.BoxBlur(10, 10, 3));
+        } else {
+            root.setEffect(null);
+        }
     }
 
     public static void setView(Node nuevaVista) {
