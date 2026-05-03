@@ -2,173 +2,89 @@ package galeria.components.interfaz;
 
 import galeria.dao.ProyectoDAO;
 import galeria.model.Proyecto;
-import galeria.util.Animations;
+import galeria.util.CardStyle;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
-import org.kordamp.ikonli.javafx.FontIcon;
-
 import java.util.List;
 
 public class ProyectosDestacados extends VBox {
 
-    // Se agrega el parámetro onExplorar para la navegación
     public ProyectosDestacados(Runnable onExplorar) {
-        setSpacing(24);
-        setAlignment(Pos.TOP_LEFT);
+        setSpacing(25);
+        setPadding(new Insets(30, 0, 30, 0));
 
-        // ── Título ─────────────────────────────────────
-        HBox titulo = new HBox(10);
-        titulo.setAlignment(Pos.CENTER_LEFT);
-
+        // Título
+        HBox header = new HBox(10);
+        header.setAlignment(Pos.CENTER_LEFT);
         Circle dot = new Circle(6, Color.web("#3F68E4"));
+        Label lblSeccion = new Label("Proyectos Destacados");
+        lblSeccion.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #3F68E4;");
+        header.getChildren().addAll(dot, lblSeccion);
 
-        Label lblTitulo = new Label("Proyectos Destacados");
-        lblTitulo.setStyle(
-                "-fx-font-size: 20px;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-text-fill: #3F68E4;"
-        );
-
-        titulo.getChildren().addAll(dot, lblTitulo);
-
-        // ── Datos (máximo 6) ───────────────────────────
-        ProyectoDAO dao = new ProyectoDAO();
-        List<Proyecto> proyectos = dao.listarTopPorVistas(6);
-
-        if (proyectos.isEmpty()) {
-            Label vacio = new Label("No hay proyectos disponibles aún.");
-            vacio.setStyle("-fx-text-fill: #9ca3af; -fx-font-size: 14px;");
-            getChildren().addAll(titulo, vacio);
-            return;
-        }
-
-        // ── GRID 2x3 PERFECTO ──────────────────────────
+        // GRID BENTO CONFIGURACIÓN
         GridPane grid = new GridPane();
-        grid.setHgap(16);
-        grid.setVgap(16);
-        grid.setMaxWidth(Double.MAX_VALUE);
+        grid.setHgap(18);
+        grid.setVgap(18);
 
-        for (int i = 0; i < 3; i++) {
+        // 4 columnas
+        for (int i = 0; i < 4; i++) {
             ColumnConstraints col = new ColumnConstraints();
-            col.setPercentWidth(33.3333);
-            col.setHgrow(Priority.ALWAYS);
+            col.setPercentWidth(25);
             grid.getColumnConstraints().add(col);
         }
 
-        for (int i = 0; i < 2; i++) {
+        // Definimos las filas para que la parte superior sea más alta (3 filas vs 2 filas)
+        // Usamos un total de 5 filas de "unidad" para el grid bento
+        for (int i = 0; i < 5; i++) {
             RowConstraints row = new RowConstraints();
-            row.setVgrow(Priority.ALWAYS);
+            row.setPercentHeight(20); // 100% / 5 filas
             grid.getRowConstraints().add(row);
         }
 
-        for (int i = 0; i < proyectos.size() && i < 6; i++) {
-            VBox card = crearCard(proyectos.get(i));
-            int col = i % 3;
-            int row = i / 3;
-            grid.add(card, col, row);
-            Animations.slideUpFadeIn(card, 100L * i);
+        ProyectoDAO dao = new ProyectoDAO();
+        List<Proyecto> proyectos = dao.listarTopPorVistas(7);
+
+        if (proyectos.size() >= 7) {
+            // --- PARTE SUPERIOR (OCUPA 3 FILAS) ---
+
+            // P1: Grande (2 col x 3 filas)
+            grid.add(new CardProyecto(proyectos.get(0), CardStyle.DESTACADO), 0, 0, 2, 3);
+
+            // P2: Alargado (1 col x 3 filas)
+            grid.add(new CardProyecto(proyectos.get(1), CardStyle.DESTACADO), 2, 0, 1, 3);
+
+            // P3 y P4: Apilados (1 col x 1.5 filas cada uno aprox)
+            // Aquí repartimos las 3 filas entre los dos: uno de 2 filas y otro de 1.
+            grid.add(new CardProyecto(proyectos.get(2), CardStyle.DESTACADO), 3, 0, 1, 2);
+            grid.add(new CardProyecto(proyectos.get(3), CardStyle.DESTACADO), 3, 2, 1, 1);
+
+            // --- PARTE INFERIOR (OCUPA 2 FILAS) ---
+
+            // P5: (1 col x 2 filas)
+            grid.add(new CardProyecto(proyectos.get(4), CardStyle.DESTACADO), 0, 3, 1, 2);
+
+            // P6: Ancho (2 col x 2 filas)
+            grid.add(new CardProyecto(proyectos.get(5), CardStyle.DESTACADO), 1, 3, 2, 2);
+
+            // P7: (1 col x 2 filas)
+            grid.add(new CardProyecto(proyectos.get(6), CardStyle.DESTACADO), 3, 3, 1, 2);
         }
 
-        // ── Botón ──────────────────────────────────────
-        HBox btnRow = new HBox();
-        btnRow.setAlignment(Pos.CENTER);
-        btnRow.setPadding(new Insets(8, 0, 0, 0));
+        // Botón Explorar
+        Button btnCat = new Button("Explorar catálogo de Proyectos");
+        btnCat.setStyle("-fx-background-color: #3F68E4; -fx-text-fill: white; " +
+                "-fx-background-radius: 30; -fx-padding: 14 40; -fx-font-weight: bold;");
+        btnCat.setOnAction(e -> onExplorar.run());
 
-        Button btnExplorar = new Button("Explorar catálogo de Proyectos");
-        estilizarBoton(btnExplorar, false);
+        HBox btnWrapper = new HBox(btnCat);
+        btnWrapper.setAlignment(Pos.CENTER);
+        btnWrapper.setPadding(new Insets(20, 0, 0, 0));
 
-        btnExplorar.setOnMouseEntered(e -> estilizarBoton(btnExplorar, true));
-        btnExplorar.setOnMouseExited(e -> estilizarBoton(btnExplorar, false));
-
-        // Acción de redirección
-        btnExplorar.setOnAction(e -> {
-            if (onExplorar != null) onExplorar.run();
-        });
-
-        btnRow.getChildren().add(btnExplorar);
-        getChildren().addAll(titulo, grid, btnRow);
-    }
-
-    private VBox crearCard(Proyecto p) {
-        VBox card = new VBox();
-        card.setPrefHeight(180);
-        card.setMinHeight(180);
-        card.setMaxWidth(Double.MAX_VALUE);
-        card.setCursor(Cursor.HAND);
-        card.setStyle("-fx-background-color: linear-gradient(to bottom, #f97316, #2563eb); -fx-background-radius: 18;");
-        aplicarClip(card, 18);
-
-        if (p.getPortadaURL() != null && !p.getPortadaURL().isEmpty()) {
-            aplicarImagenFondo(card, p.getPortadaURL());
-        }
-
-        Region spacer = new Region();
-        VBox.setVgrow(spacer, Priority.ALWAYS);
-
-        VBox info = new VBox(6);
-        info.setPadding(new Insets(14));
-
-        Label badge = new Label("PROYECTO");
-        badge.setStyle("-fx-background-color: rgba(255,255,255,0.2); -fx-text-fill: white; -fx-font-size: 9px; -fx-padding: 3 8; -fx-background-radius: 4;");
-
-        Label titulo = new Label(p.getTitulo());
-        titulo.setWrapText(true);
-        titulo.setStyle("-fx-font-family: medium ; -fx-font-size: 14px; -fx-text-fill: white;");
-
-        Label resumen = new Label(truncar(p.getResumen(), 60));
-        resumen.setWrapText(true);
-        resumen.setStyle("-fx-font-size: 11px; -fx-text-fill: rgba(255,255,255,0.7);");
-
-        HBox meta = new HBox(6);
-        FontIcon icon = new FontIcon("fas-eye");
-        icon.setIconSize(11);
-        icon.setIconColor(Color.WHITE);
-        Label vistas = new Label(p.getCantidadVistas() + " vistas");
-        vistas.setStyle("-fx-font-size: 10px; -fx-text-fill: white;");
-
-        meta.getChildren().addAll(icon, vistas);
-        info.getChildren().addAll(badge, titulo, resumen, meta);
-        card.getChildren().addAll(spacer, info);
-        Animations.attachHoverLift(card);
-        return card;
-    }
-
-    private void aplicarImagenFondo(VBox card, String rutaRelativa) {
-        try {
-            var url = getClass().getResource("/" + rutaRelativa);
-            if (url != null) {
-                Image img = new Image(url.toExternalForm(), true);
-                BackgroundImage bgImg = new BackgroundImage(img, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, new BackgroundSize(100, 100, true, true, false, true));
-                card.setBackground(new Background(bgImg));
-            }
-        } catch (Exception e) {
-            System.out.println("[IMAGEN] No encontrada: " + rutaRelativa);
-        }
-    }
-
-    private void aplicarClip(VBox card, double radio) {
-        Rectangle clip = new Rectangle();
-        clip.setArcWidth(radio * 2);
-        clip.setArcHeight(radio * 2);
-        clip.widthProperty().bind(card.widthProperty());
-        clip.heightProperty().bind(card.heightProperty());
-        card.setClip(clip);
-    }
-
-    private void estilizarBoton(Button btn, boolean hover) {
-        btn.setStyle("-fx-background-color: " + (hover ? "#2d55c7" : "#3F68E4") + "; -fx-text-fill: white; -fx-font-family: 'Manrope-SemiBold'; -fx-font-size: 14px; -fx-background-radius: 40; -fx-padding: 13 32;");
-    }
-
-    private String truncar(String texto, int max) {
-        if (texto == null) return "";
-        return texto.length() > max ? texto.substring(0, max) + "..." : texto;
+        this.getChildren().addAll(header, grid, btnWrapper);
     }
 }

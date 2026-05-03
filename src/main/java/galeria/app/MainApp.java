@@ -1,54 +1,63 @@
 package galeria.app;
 
 import galeria.components.interfaz.Navbar;
-import galeria.components.views.Inicio; // Importamos tu vista de Inicio
+import galeria.components.views.Inicio;
 import javafx.application.Application;
 import javafx.animation.FadeTransition;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
 public class MainApp extends Application {
 
-    // El contenedor principal es estático para que setView funcione desde fuera
-    private static BorderPane root = new BorderPane();
+    private static StackPane root; // Raíz para capas (Overlay)
+    private static BorderPane mainLayout; // Capa 0: UI Normal
+    private static Navbar navbarInstance;
+
+    public static void actualizarNavbar() {
+        if (navbarInstance != null) {
+            navbarInstance.actualizarBotonSesion();
+        }
+    }
 
     @Override
     public void start(Stage stage) {
-        root.setStyle("-fx-background-color: #ffffff;");
-        // 1. Instanciamos la Navbar (que está en galeria.components.interfaz)
-        Navbar navbar = new Navbar();
+        root = new StackPane();
+        mainLayout = new BorderPane();
+        mainLayout.setStyle("-fx-background-color: #ffffff;");
 
-        // Contenedor para el margen superior del Navbar
-        StackPane navbarWrapper = new StackPane(navbar);
+        navbarInstance = new Navbar();
+
+        StackPane navbarWrapper = new StackPane(navbarInstance);
         navbarWrapper.setPadding(new Insets(20, 40, 10, 40));
-        navbarWrapper.setStyle("-fx-background-color: transparent;");
         navbarWrapper.setPickOnBounds(false);
-        // 2. Colocamos la Navbar fija arriba
-        root.setTop(navbarWrapper);
 
-        // 3. NO cargamos Inicio por defecto aquí para que esté vacío al abrir,
-        // o puedes poner root.setCenter(new TuVistaDeLogin()); mas adelante.
+        mainLayout.setTop(navbarWrapper);
+        mainLayout.setCenter(new Inicio()); // Cargamos inicio por defecto
 
-        // 4. Configuración de la Escena
+        root.getChildren().add(mainLayout);
+
+        // El menú se agrega aquí al final para que esté por encima de todo
+        root.getChildren().add(navbarInstance.getMenu());
+        StackPane.setAlignment(navbarInstance.getMenu(), Pos.TOP_RIGHT);
+        StackPane.setMargin(navbarInstance.getMenu(), new Insets(85, 40, 0, 0));
+
         Scene scene = new Scene(root, 1280, 820);
-
         try {
             String css = getClass().getResource("/galeria/css/app.css").toExternalForm();
             scene.getStylesheets().add(css);
         } catch (Exception e) {
-            System.err.println("Error: No se encontró el archivo CSS en resources/galeria/css/app.css");
+            System.err.println("Error: No se encontró el archivo CSS");
         }
 
         stage.setTitle("UniRepo - Galería de Proyectos");
         stage.setScene(scene);
         stage.show();
 
-        // Animación de entrada suave
         root.setOpacity(0);
         FadeTransition ft = new FadeTransition(Duration.millis(800), root);
         ft.setFromValue(0);
@@ -56,12 +65,8 @@ public class MainApp extends Application {
         ft.play();
     }
 
-    /**
-     * Este método es el que usarás en el Navbar para cambiar la vista.
-     */
     public static void setView(Node nuevaVista) {
-        root.setCenter(nuevaVista);
-        root.requestLayout(); // <--- Esto obliga a la app a refrescarse visualmente
+        mainLayout.setCenter(nuevaVista);
     }
 
     public static void main(String[] args) {
