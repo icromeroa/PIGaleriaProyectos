@@ -2,6 +2,8 @@ package galeria.components.interfaz;
 
 import galeria.app.MainApp;
 import galeria.components.views.Catalogo;
+import galeria.components.views.GestionUsuarios;
+import galeria.components.views.Guardados;
 import galeria.components.views.Inicio;
 import galeria.util.Animations;
 import galeria.util.Sesion;
@@ -110,8 +112,10 @@ public class Menu extends VBox {
 
         getChildren().add(crearItem("fas-th",
                 "Categorías", false, () -> navegar("Categorias")));
-        getChildren().add(crearItem("fas-bookmark",
-                "Guardados",  false, () -> navegar("Guardados")));
+
+        if (u != null) {
+            getChildren().add(crearItem("fas-bookmark", "Guardados", false, () -> navegar("Guardados")));
+        }
 
         if (esAdmin) {
             getChildren().add(crearItem("fas-users",
@@ -276,8 +280,8 @@ public class Menu extends VBox {
             case "Explorar"        -> MainApp.setView(new Catalogo());
             case "AgregarProyecto" -> MainApp.setView(placeholder("Agregar Proyecto"));
             case "Categorias"      -> MainApp.setView(placeholder("Categorías"));
-            case "Guardados"       -> MainApp.setView(placeholder("Guardados"));
-            case "Usuarios"        -> MainApp.setView(placeholder("Gestión de Usuarios"));
+            case "Guardados"       -> MainApp.setView(new Guardados());
+            case "Usuarios"        -> MainApp.setView(new GestionUsuarios());
             case "Perfil"          -> MainApp.setView(placeholder("Perfil"));
         }
     }

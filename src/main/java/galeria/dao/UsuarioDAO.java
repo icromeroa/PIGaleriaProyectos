@@ -164,4 +164,36 @@ public class UsuarioDAO {
             System.out.println("Error al eliminar usuario: " + e.getMessage());
         }
     }
+
+    public int contarUsuarios(boolean soloAdmins) {
+        String sql = soloAdmins ? "SELECT COUNT(*) FROM usuarios WHERE es_admin = 1"
+                : "SELECT COUNT(*) FROM usuarios";
+        try (Connection con = conexion.conectar();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) { e.printStackTrace(); }
+        return 0;
+    }
+
+    public List<Usuario> buscarUsuarios(String filtro) {
+        List<Usuario> lista = new ArrayList<>();
+        String sql = "SELECT * FROM usuarios WHERE nombre LIKE ? OR apellido LIKE ? OR correo LIKE ?";
+        try (Connection con = conexion.conectar();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            String f = "%" + filtro + "%";
+            ps.setString(1, f);
+            ps.setString(2, f);
+            ps.setString(3, f);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                lista.add(new Usuario(
+                        rs.getInt("id_usuario"), rs.getString("nombre"), rs.getString("apellido"),
+                        rs.getString("correo"), rs.getString("clave"), rs.getString("avatar_url"),
+                        rs.getBoolean("es_admin"), new ArrayList<>(), new ArrayList<>()
+                ));
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return lista;
+    }
 }
