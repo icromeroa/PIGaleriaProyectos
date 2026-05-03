@@ -175,14 +175,23 @@ public class CardProyecto extends VBox {
     }
 
     private void aplicarFondoColor() {
+        // Paleta de Naranjas y Azules muy suaves (Pastel/Acuarela)
         String[] colores = {
-                "#dce6ff", "#ffe4cc", "#d1fae5",
-                "#fce7f3", "#e0e7ff", "#fef3c7"
+                "#FFF7ED", // Naranja ultra suave (Orange 50)
+                "#F0F9FF", // Azul ultra suave (Sky 50)
+                "#FFEDD5", // Naranja suave (Orange 100)
+                "#E0F2FE", // Azul suave (Sky 100)
+                "#FEF3C7", // Ambar/Naranja cálido
+                "#EFF6FF"  // Azul brillante suave (Blue 50)
         };
-        String color = colores[proyecto.getIdProyecto() % colores.length];
+
+        // Usamos el ID para que el color sea consistente por proyecto
+        String color = colores[Math.abs(proyecto.getIdProyecto()) % colores.length];
         this.setStyle(
                 "-fx-background-color: " + color + ";" +
-                        "-fx-background-radius: 20;"
+                        "-fx-background-radius: 20;" +
+                        "-fx-border-color: rgba(0,0,0,0.05);" + // Un borde casi invisible para dar definición
+                        "-fx-border-radius: 20;"
         );
     }
 

@@ -3,9 +3,11 @@ package galeria.components.views;
 import galeria.model.*;
 import galeria.dao.*;
 import galeria.app.MainApp;
+import galeria.components.interfaz.CardProyecto;
 import galeria.util.Animations;
 import galeria.util.Sesion;
 import galeria.util.Alertas;
+import galeria.util.CardStyle;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -29,6 +31,7 @@ public class DetalleProyecto extends ScrollPane {
     private GuardadoDAO guardadoDAO = new GuardadoDAO();
     private ValoracionDAO valoracionDAO = new ValoracionDAO();
     private RecursoDAO recursoDAO = new RecursoDAO();
+    private ProyectoDAO proyectoDAO = new ProyectoDAO();
     private List<FontIcon> estrellasIcons = new ArrayList<>();
 
     private Button btnGuardar;
@@ -41,39 +44,53 @@ public class DetalleProyecto extends ScrollPane {
         this.setPannable(true);
         this.setStyle("-fx-background-color: transparent; -fx-background: #F8FAFC; -fx-border-color: transparent;");
 
-        HBox mainContainer = new HBox(40);
-        mainContainer.setAlignment(Pos.TOP_CENTER);
-        mainContainer.setPadding(new Insets(60, 80, 60, 80));
-        mainContainer.setStyle("-fx-background-color: #F8FAFC;");
+        // --- CONTENEDOR RAIZ VERTICAL ---
+        VBox root = new VBox(20);
+        root.setStyle("-fx-background-color: #F8FAFC;");
+        root.setAlignment(Pos.TOP_CENTER);
 
-        // --- COLUMNA IZQUIERDA: PORTADA ---
+        // --- SECCIÓN SUPERIOR: INFO PRINCIPAL ---
+        HBox mainInfoContainer = new HBox(40);
+        mainInfoContainer.setAlignment(Pos.TOP_CENTER);
+        mainInfoContainer.setPadding(new Insets(60, 80, 20, 80));
+
         StackPane marcoImagen = crearSeccionPortada(p);
+        VBox fichaInfo = crearFichaDetalle(p);
 
-        // --- COLUMNA DERECHA: FICHA ---
+        mainInfoContainer.getChildren().addAll(marcoImagen, fichaInfo);
+
+        // --- SECCIÓN INFERIOR: RECOMENDADOS ---
+        VBox recomendadosContainer = crearSeccionRecomendados();
+
+        root.getChildren().addAll(mainInfoContainer, recomendadosContainer);
+        this.setContent(root);
+
+        // Animaciones de entrada
+        Animations.slideUpFadeIn(marcoImagen, 200);
+        Animations.slideUpFadeIn(fichaInfo, 400);
+        Animations.slideUpFadeIn(recomendadosContainer, 600);
+    }
+
+    private VBox crearFichaDetalle(Proyecto p) {
         VBox fichaInfo = new VBox(25);
         fichaInfo.setMinWidth(500); fichaInfo.setMaxWidth(500);
         fichaInfo.setPadding(new Insets(40));
         fichaInfo.setStyle("-fx-background-color: white; -fx-background-radius: 35; -fx-font-family: 'Manrope';");
         fichaInfo.setEffect(new DropShadow(30, Color.rgb(0, 0, 0, 0.06)));
 
-        // --- CABECERA (BADGE + BOTÓN EDITAR) ---
+        // Cabecera (Badge + Editar)
         HBox cabeceraFicha = new HBox();
         cabeceraFicha.setAlignment(Pos.CENTER_LEFT);
-
         Label badgeCat = new Label("INVESTIGACIÓN VERIFICADA");
         badgeCat.setStyle("-fx-background-color: #FFEDD5; -fx-text-fill: #9A3412; -fx-font-weight: bold; -fx-font-size: 11; -fx-padding: 8 16; -fx-background-radius: 20;");
-
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-
         cabeceraFicha.getChildren().addAll(badgeCat, spacer);
 
-        // Lógica para mostrar botón de editar si es Admin
         if (Sesion.estaLogueado() && Sesion.esAdmin()) {
             FontIcon iconEdit = new FontIcon("fas-pen");
             iconEdit.setIconColor(Color.WHITE);
             iconEdit.setIconSize(14);
-
             Button btnEditar = new Button(" Editar", iconEdit);
             btnEditar.setStyle("-fx-background-color: #F97316; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 20; -fx-background-radius: 15; -fx-cursor: hand; -fx-font-size: 13;");
             btnEditar.setOnAction(e -> MainApp.setView(new SubirProyecto(proyecto)));
@@ -85,7 +102,6 @@ public class DetalleProyecto extends ScrollPane {
         lblTitulo.setWrapText(true);
         lblTitulo.setStyle("-fx-font-size: 32; -fx-font-weight: 800; -fx-text-fill: #0F172A; -fx-line-spacing: -2;");
 
-        // Metadata e info
         VBox metaData = new VBox(15);
         String nombresAutores = p.getListaAutores().stream().map(Autor::getNombreAutor).collect(Collectors.joining(", "));
         String nombreCat = (p.getCategoria() != null) ? p.getCategoria().getNombreCategoria().toUpperCase() : "GENERAL";
@@ -100,9 +116,7 @@ public class DetalleProyecto extends ScrollPane {
 
         HBox rowStats = crearSeccionEstadisticas();
 
-        // Botones de Acción
         VBox vBoxAcciones = new VBox(15);
-
         FontIcon iconDesc = new FontIcon("fas-download");
         iconDesc.setIconColor(Color.WHITE);
         Button btnDescargar = new Button(" Descargar Archivo Adjunto", iconDesc);
@@ -118,31 +132,69 @@ public class DetalleProyecto extends ScrollPane {
         Animations.attachHoverLift(btnGuardar);
 
         VBox ratingContainer = crearRatingInteractivo();
-
         vBoxAcciones.getChildren().addAll(btnDescargar, btnGuardar, ratingContainer);
+
         fichaInfo.getChildren().addAll(cabeceraFicha, lblTitulo, metaData, lblResumen, rowStats, vBoxAcciones);
-
-        mainContainer.getChildren().addAll(marcoImagen, fichaInfo);
-        this.setContent(mainContainer);
-
-        Animations.slideUpFadeIn(marcoImagen, 200);
-        Animations.slideUpFadeIn(fichaInfo, 400);
+        return fichaInfo;
     }
 
-    // --- MÉTODOS DE APOYO (Manteniendo tu lógica anterior) ---
+    private VBox crearSeccionRecomendados() {
+        VBox container = new VBox(30);
+        container.setPadding(new Insets(20, 80, 60, 80));
+        container.setAlignment(Pos.CENTER_LEFT);
+
+        Label lblSubtitulo = new Label("Tal vez te interese");
+        lblSubtitulo.setStyle("-fx-font-size: 24; -fx-font-weight: 800; -fx-text-fill: #0F172A;");
+
+        // USO DE TU MÉTODO: listarTodosConAutor()
+        List<Proyecto> todos = proyectoDAO.listarTodosConAutor();
+
+        List<Proyecto> filtrados = todos.stream()
+                .filter(p -> p.getIdProyecto() != proyecto.getIdProyecto())
+                .limit(4)
+                .collect(Collectors.toList());
+
+        GridPane grid = new GridPane();
+        grid.setHgap(25);
+        grid.setAlignment(Pos.CENTER);
+
+        for (int i = 0; i < filtrados.size(); i++) {
+            CardProyecto card = new CardProyecto(filtrados.get(i), CardStyle.MINI);
+            card.setPrefWidth(300);
+            grid.add(card, i, 0);
+        }
+
+        container.getChildren().addAll(lblSubtitulo, grid);
+        return container;
+    }
 
     private StackPane crearSeccionPortada(Proyecto p) {
         StackPane marco = new StackPane();
         double imgW = 600; double imgH = 700;
         marco.setPrefSize(imgW, imgH);
+
         ImageView portada = new ImageView();
-        try {
-            String ruta = p.getPortadaURL();
-            if (ruta != null && !ruta.isEmpty()) {
-                portada.setImage(new Image(getClass().getResourceAsStream(ruta.startsWith("/") ? ruta : "/" + ruta)));
-                portada.setFitWidth(imgW); portada.setFitHeight(imgH);
+        String rutaBD = p.getPortadaURL();
+
+        if (rutaBD != null && !rutaBD.isEmpty()) {
+            try {
+                String ruta = rutaBD.startsWith("/") ? rutaBD : "/" + rutaBD;
+                // Carga robusta mediante Stream para evitar imágenes vacías en navegación interna
+                Image img = new Image(getClass().getResourceAsStream(ruta), imgW, imgH, true, true);
+
+                if (img.isError()) {
+                    img = new Image(getClass().getResource(ruta).toExternalForm(), imgW, imgH, true, true);
+                }
+
+                portada.setImage(img);
+                portada.setFitWidth(imgW);
+                portada.setFitHeight(imgH);
+            } catch (Exception e) {
+                System.out.println("[ERROR IMAGEN DETALLE] " + e.getMessage());
+                marco.setStyle("-fx-background-color: #E2E8F0; -fx-background-radius: 50;");
             }
-        } catch (Exception e) {}
+        }
+
         Rectangle clip = new Rectangle(imgW, imgH);
         clip.setArcWidth(50); clip.setArcHeight(50);
         marco.setClip(clip);
