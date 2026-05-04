@@ -89,3 +89,78 @@
     -fx-border-width: 0 0 2 0;
 }
 
+/* Estilos para EditarProyecto */
+.scroll-pane {
+    -fx-background-color: #F8FAFC;
+    -fx-background: #F8FAFC;
+}
+
+.input-moderno {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #E2E8F0;
+    -fx-border-radius: 10;
+    -fx-padding: 8 12;
+    -fx-font-size: 14;
+    -fx-text-fill: #1E293B;
+}
+
+.input-moderno:focused {
+    -fx-border-color: #3B82F6;
+    -fx-border-width: 2;
+}
+
+.combo-box-moderno {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #E2E8F0;
+    -fx-border-radius: 10;
+}
+
+.combo-box-moderno .list-cell {
+    -fx-text-fill: #1E293B;
+}
+
+.area-moderna {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #E2E8F0;
+    -fx-border-radius: 10;
+    -fx-font-family: "Segoe UI";
+}
+
+.pildora-autor {
+    -fx-background-color: #F1F5F9;
+    -fx-background-radius: 20;
+    -fx-border-color: #E2E8F0;
+    -fx-border-radius: 20;
+}
+
+.boton-guardar {
+    -fx-background-color: #F97316;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.boton-guardar:hover {
+    -fx-background-color: #EA580C;
+}
+
+.boton-cancelar {
+    -fx-background-color: white;
+    -fx-border-color: #E2E8F0;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-text-fill: #64748B;
+    -fx-cursor: hand;
+}
+
+.boton-eliminar {
+    -fx-background-color: transparent;
+    -fx-text-fill: #EF4444;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+

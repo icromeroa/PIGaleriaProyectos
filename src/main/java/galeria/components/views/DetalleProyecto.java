@@ -102,7 +102,7 @@ public class DetalleProyecto extends ScrollPane {
             iconEdit.setIconSize(14);
             Button btnEditar = new Button(" Editar", iconEdit);
             btnEditar.setStyle("-fx-background-color: #F97316; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 20; -fx-background-radius: 15; -fx-cursor: hand; -fx-font-size: 13;");
-            btnEditar.setOnAction(e -> MainApp.setView(new SubirProyecto(proyecto)));
+            btnEditar.setOnAction(e -> MainApp.setView(new EditarProyecto(this.proyecto)));
             Animations.attachHoverLift(btnEditar);
             cabeceraFicha.getChildren().add(btnEditar);
         }
