@@ -13,6 +13,7 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -202,14 +203,30 @@ public class Navbar extends HBox {
         return pill;
     }
 
-    private MFXButton crearBotonLoginOriginal() {
+    private Button crearBotonLoginOriginal() {
         FontIcon userIcon = new FontIcon("far-user");
         userIcon.setIconColor(Color.WHITE);
         userIcon.setIconSize(14);
-        MFXButton loginBtn = new MFXButton("Iniciar Sesión", userIcon);
+
+        Button loginBtn = new Button("Iniciar Sesión", userIcon);
         loginBtn.setGraphicTextGap(10);
-        loginBtn.setStyle("-fx-background-color: #3F68E4; -fx-text-fill: white; -fx-font-family: 'Manrope SemiBold'; -fx-background-radius: 25; -fx-padding: 10 25; -fx-cursor: hand;");
+
+        loginBtn.setStyle(
+                "-fx-background-color: #3F68E4;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-family: 'Manrope SemiBold';" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-background-radius: 25;" +
+                        "-fx-border-radius: 25;" +
+                        "-fx-padding: 10 25;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-border-color: transparent;"
+        );
+
+        Animations.attachHoverLift(loginBtn);
+
         loginBtn.setOnAction(e -> MainApp.setView(new Login()));
+
         return loginBtn;
     }
 
