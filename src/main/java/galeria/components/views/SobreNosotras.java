@@ -5,7 +5,6 @@ import galeria.util.Animations;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
@@ -39,13 +38,12 @@ public class SobreNosotras extends ScrollPane {
         mainContainer.getChildren().addAll(hero, equipo, especificaciones);
         this.setContent(mainContainer);
 
-        // --- ANIMACIONES DE SCROLL INICIALES ---
+        // --- ANIMACIONES DE ENTRADA INMEDIATA ---
         Animations.slideUpFadeIn(hero, 0);
 
-        // Revelar sección equipo al hacer scroll
-        Animations.animateOnScroll(equipo, this, () -> Animations.slideUpFadeIn(equipo, 0));
-
-        // La sección de especificaciones tiene sus propias animaciones internas por ítem
+        // Animamos solo el encabezado del equipo (título y descripción) de inmediato
+        VBox textosEquipo = (VBox) equipo.getChildren().get(0);
+        Animations.slideUpFadeIn(textosEquipo, 200);
     }
 
     private VBox crearHero() {
@@ -74,6 +72,7 @@ public class SobreNosotras extends ScrollPane {
         lblTxtP.setStyle("-fx-font-size: 14; -fx-text-fill: " + COLOR_TEXTO_DESC + ";");
         statProyectos.getChildren().addAll(lblNumP, lblTxtP);
 
+        // Animación de conteo al hacer scroll sobre los números
         Animations.animateOnScroll(lblNumP, this, () ->
                 Animations.animarConteo(lblNumP, new ProyectoDAO().getEstadisticasGenerales()[1], "-fx-font-size: 36; -fx-font-weight: 900; -fx-text-fill: " + COLOR_AZUL + ";")
         );
@@ -89,6 +88,7 @@ public class SobreNosotras extends ScrollPane {
         VBox container = new VBox(40);
         container.setAlignment(Pos.CENTER);
 
+        // Encabezado (Animación de entrada normal)
         VBox textos = new VBox(10);
         textos.setAlignment(Pos.CENTER);
         Label titulo = new Label("Nuestro Equipo");
@@ -97,13 +97,22 @@ public class SobreNosotras extends ScrollPane {
         sub.setStyle("-fx-text-fill: " + COLOR_TEXTO_DESC + "; -fx-font-size: 16;");
         textos.getChildren().addAll(titulo, sub);
 
+        // Cards (Animación de Scroll)
         HBox hbCards = new HBox(30);
         hbCards.setAlignment(Pos.CENTER);
-        hbCards.getChildren().addAll(
-                crearCardIntegrante("IR", "Irene Romero Avendaño"),
-                crearCardIntegrante("MG", "Michelle Guzman Angarita"),
-                crearCardIntegrante("HL", "Helen Lavao Benitez")
-        );
+
+        VBox card1 = crearCardIntegrante("IR", "Irene Romero Avendaño");
+        VBox card2 = crearCardIntegrante("MG", "Michelle Guzman Angarita");
+        VBox card3 = crearCardIntegrante("HL", "Helen Lavao Benitez");
+
+        hbCards.getChildren().addAll(card1, card2, card3);
+
+        // Disparamos la animación de las cards solo cuando el contenedor de las cards sea visible
+        Animations.animateOnScroll(hbCards, this, () -> {
+            Animations.slideUpFadeIn(card1, 0);
+            Animations.slideUpFadeIn(card2, 200);
+            Animations.slideUpFadeIn(card3, 400);
+        });
 
         container.getChildren().addAll(textos, hbCards);
         return container;
@@ -111,11 +120,11 @@ public class SobreNosotras extends ScrollPane {
 
     private VBox crearCardIntegrante(String iniciales, String nombre) {
         VBox card = new VBox(15);
+        card.setOpacity(0); // Oculta inicialmente para el scroll reveal
         card.setAlignment(Pos.CENTER_LEFT);
         card.setPadding(new Insets(40, 30, 40, 30));
         card.setPrefSize(320, 350);
 
-        // CORRECCIÓN: Se añade -fx-background-radius Y -fx-border-radius para evitar bordes cuadrados
         card.setStyle("-fx-background-color: white; " +
                 "-fx-background-radius: 30; " +
                 "-fx-border-radius: 30; " +
@@ -146,8 +155,6 @@ public class SobreNosotras extends ScrollPane {
             i.setIconColor(Color.web(COLOR_TEXTO_DESC));
             i.setIconSize(18);
             i.setCursor(Cursor.HAND);
-            i.setOnMouseEntered(e -> i.setIconColor(Color.web(COLOR_AZUL)));
-            i.setOnMouseExited(e -> i.setIconColor(Color.web(COLOR_TEXTO_DESC)));
         }
 
         redes.getChildren().addAll(iconLink, iconMail);
@@ -174,14 +181,13 @@ public class SobreNosotras extends ScrollPane {
         HBox hbItems = new HBox(20);
         hbItems.setPadding(new Insets(20, 0, 0, 0));
 
-        // Creamos los ítems individualmente para animarlos por separado
         VBox item1 = crearItemEspec("fas-code", "MATERIA", "Programación Orientada a Objetos");
         VBox item2 = crearItemEspec("fas-calendar-alt", "SEMESTRE", "2026-1");
         VBox item3 = crearItemEspec("fas-map-marker-alt", "UBICACIÓN", "Bogotá, Colombia");
 
         hbItems.getChildren().addAll(item1, item2, item3);
 
-        // --- ANIMACIONES DE SCROLL PARA LOS ÍTEMS ---
+        // Animación de scroll escalonada para esta sección
         Animations.animateOnScroll(container, this, () -> {
             Animations.slideUpFadeIn(titulo, 0);
             Animations.slideUpFadeIn(line, 100);
@@ -215,7 +221,7 @@ public class SobreNosotras extends ScrollPane {
         box.getChildren().addAll(icon, textos);
 
         VBox wrapper = new VBox(box);
-        wrapper.setOpacity(0); // Inicialmente invisible para la animación
+        wrapper.setOpacity(0);
         HBox.setHgrow(wrapper, Priority.ALWAYS);
         return wrapper;
     }

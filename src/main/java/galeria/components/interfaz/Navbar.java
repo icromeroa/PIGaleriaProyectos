@@ -142,6 +142,15 @@ public class Navbar extends HBox {
             PauseTransition delay = new PauseTransition(Duration.millis(80));
             delay.setOnFinished(e -> {
                 MainApp.setView(nuevaVista);
+
+                // Si la nueva vista es un ScrollPane (como Inicio, Catalogo, etc.)
+                if (nuevaVista instanceof javafx.scene.control.ScrollPane sp) {
+                    Platform.runLater(() -> {
+                        sp.setVvalue(0); // Forzar scroll al inicio
+                        sp.requestFocus(); // Quitar el foco de cualquier botón interno
+                    });
+                }
+
                 nuevaVista.setOpacity(0);
                 FadeTransition ft = new FadeTransition(Duration.millis(300), nuevaVista);
                 ft.setToValue(1.0);
