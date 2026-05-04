@@ -113,8 +113,6 @@ public class Categorizacion extends ScrollPane {
                 crearBotonFiltro("Semestres", "fas-calendar-alt")
         );
 
-        if(!botonesFiltro.isEmpty()) actualizarEstilosBotones(botonesFiltro.get(0));
-
         return hb;
     }
 
@@ -296,25 +294,231 @@ public class Categorizacion extends ScrollPane {
     }
 
     private void filtrarTabla(String tipo) {
-        String singular = tipo.equalsIgnoreCase("Categorías") ? "Categoría" : tipo.substring(0, tipo.length() - 1);
+        String singular;
+        // Manejo de plurales irregulares
+        if (tipo.equalsIgnoreCase("Categorías")) {
+            singular = "Categoría";
+        } else if (tipo.equalsIgnoreCase("Facultades")) {
+            singular = "Facultad"; // Aquí estaba el error: antes buscaba "Facultade"
+        } else {
+            singular = tipo.substring(0, tipo.length() - 1);
+        }
+
         ObservableList<ItemEstructura> filtrados = masterData.filtered(i -> i.tipo.equalsIgnoreCase(singular));
         tabla.setItems(filtrados);
         Animations.slideUpFadeIn(tabla, 50);
     }
 
+// --- Métodos de Acción Actualizados ---
+
     private void manejarEdicion(ItemEstructura item) {
+        if (item.tipo.equalsIgnoreCase("Semestre")) {
+            manejarEdicionSemestre(item);
+            return;
+        }
+
+        // Diálogo estándar para nombres simples (Categoría, Facultad, etc.)
         TextInputDialog dialog = new TextInputDialog(item.nombre);
-        dialog.setTitle("Editar Elemento");
-        dialog.setHeaderText("Actualizar nombre de " + item.tipo);
-        dialog.showAndWait().ifPresent(nuevo -> {
-            recargarDatosCompletos();
-            Alertas.mostrarMensaje("Éxito", "Actualizado", "fas-check", "#10B981");
+        dialog.setTitle("Editar " + item.tipo);
+        dialog.setHeaderText("Actualizar nombre");
+        dialog.setContentText("Nuevo nombre:");
+
+        dialog.showAndWait().ifPresent(nuevoNombre -> {
+            if (nuevoNombre.trim().isEmpty()) return;
+
+            try {
+                switch (item.tipo) {
+                    case "Categoría" -> {
+                        Categoria c = (Categoria) item.originalObject;
+                        c.setNombreCategoria(nuevoNombre);
+                        new CategoriaDAO().actualizarCategoria(c);
+                    }
+                    case "Facultad" -> {
+                        Facultad f = (Facultad) item.originalObject;
+                        f.setNombreFacultad(nuevoNombre);
+                        new FacultadDAO().actualizarFacultad(f);
+                    }
+                    case "Programa" -> {
+                        Programa p = (Programa) item.originalObject;
+                        p.setNombrePrograma(nuevoNombre);
+                        new ProgramaDAO().actualizarPrograma(p);
+                    }
+                    case "Materia" -> {
+                        Materia m = (Materia) item.originalObject;
+                        m.setNombreMateria(nuevoNombre);
+                        new MateriaDAO().actualizarMateria(m);
+                    }
+                }
+                recargarYNotificar("Elemento actualizado correctamente");
+            } catch (Exception e) {
+                Alertas.mostrarMensaje("Error", "No se pudo actualizar", "fas-exclamation-triangle", "#EF4444");
+            }
         });
     }
 
-    private void manejarEliminacion(ItemEstructura item) { /* Lógica de eliminación */ }
+    private void manejarEdicionSemestre(ItemEstructura item) {
+        Semestre s = (Semestre) item.originalObject;
 
-    private void manejarNuevoAtributo() { System.out.println("Nuevo atributo para: " + filtroActual); }
+        // Crear un diálogo personalizado para Semestre (Año y Periodo)
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Editar Semestre");
+        dialog.setHeaderText("Actualice los datos del semestre");
+
+        TextField txtAnio = new TextField(String.valueOf(s.getAnio()));
+        ComboBox<Integer> cbPeriodo = new ComboBox<>(FXCollections.observableArrayList(1, 2));
+        cbPeriodo.setValue(s.getPeriodo());
+
+        VBox content = new VBox(10, new Label("Año:"), txtAnio, new Label("Periodo:"), cbPeriodo);
+        content.setPadding(new Insets(20));
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        dialog.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    s.setAnio(Integer.parseInt(txtAnio.getText()));
+                    s.setPeriodo(cbPeriodo.getValue());
+                    new SemestreDAO().actualizarSemestre(s);
+                    recargarYNotificar("Semestre actualizado");
+                } catch (NumberFormatException e) {
+                    Alertas.mostrarMensaje("Error", "El año debe ser un número", "fas-times", "#EF4444");
+                }
+            }
+        });
+    }
+
+    private void manejarEliminacion(ItemEstructura item) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirmar Eliminación");
+        alert.setHeaderText("¿Estás seguro de eliminar este elemento?");
+        alert.setContentText(item.tipo + ": " + item.nombre);
+
+        alert.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    switch (item.tipo) {
+                        case "Categoría" -> new CategoriaDAO().eliminarCategoria(item.id);
+                        case "Facultad" -> new FacultadDAO().eliminarFacultad(item.id);
+                        case "Programa" -> new ProgramaDAO().eliminarPrograma(item.id);
+                        case "Materia" -> new MateriaDAO().eliminarMateria(item.id);
+                        case "Semestre" -> new SemestreDAO().eliminarSemestre(item.id);
+                    }
+                    recargarYNotificar("Elemento eliminado");
+                } catch (Exception e) {
+                    Alertas.mostrarMensaje("Error", "El elemento está siendo usado", "fas-lock", "#EF4444");
+                }
+            }
+        });
+    }
+
+    // Método auxiliar para evitar repetir código de refresco
+    private void recargarYNotificar(String mensaje) {
+        recargarDatosCompletos();
+        // Forzar el filtrado actual para que no se pierda la vista en la que estaba el usuario
+        if (!filtroActual.equals("Todos")) {
+            filtrarTabla(filtroActual);
+        }
+        Alertas.mostrarMensaje("Éxito", mensaje, "fas-check", "#10B981");
+    }
+
+    private void manejarNuevoAtributo() {
+        // Si no se ha seleccionado un filtro específico (caso inicial "Todos")
+        if (filtroActual.equals("Todos")) {
+            Alertas.mostrarMensaje("Selección requerida", "Por favor, elige una categoría en el menú de filtros antes de agregar.", "fas-info-circle", "#3F68E4");
+            return;
+        }
+
+        if (filtroActual.equalsIgnoreCase("Semestres")) {
+            crearNuevoSemestre();
+        } else {
+            crearNuevoElementoSimple();
+        }
+    }
+
+    private void crearNuevoElementoSimple() {
+        String singular;
+        // Aplicamos la misma lógica de corrección de nombres
+        if (filtroActual.equalsIgnoreCase("Categorías")) {
+            singular = "Categoría";
+        } else if (filtroActual.equalsIgnoreCase("Facultades")) {
+            singular = "Facultad";
+        } else {
+            singular = filtroActual.substring(0, filtroActual.length() - 1);
+        }
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Nuevo " + singular);
+        dialog.setHeaderText("Añadir un nuevo registro a " + filtroActual);
+        dialog.setContentText("Nombre:");
+
+        dialog.showAndWait().ifPresent(nombre -> {
+            if (nombre.trim().isEmpty()) return;
+
+            try {
+                switch (filtroActual) {
+                    case "Categorías" -> {
+                        // Categoria requiere nombre, desc e icono según tu DAO
+                        Categoria c = new Categoria(0, nombre, "Sin descripción", "fas-layer-group");
+                        new CategoriaDAO().insertarCategoria(c);
+                    }
+                    case "Facultades" -> {
+                        Facultad f = new Facultad(0, nombre);
+                        new FacultadDAO().insertarFacultad(f);
+                    }
+                    case "Programas" -> {
+                        Programa p = new Programa(0, nombre);
+                        new ProgramaDAO().insertarPrograma(p);
+                    }
+                    case "Materias" -> {
+                        Materia m = new Materia(0, nombre);
+                        new MateriaDAO().insertarMateria(m);
+                    }
+                }
+                recargarYNotificar(singular + " agregado con éxito");
+            } catch (Exception e) {
+                Alertas.mostrarMensaje("Error", "No se pudo guardar en la base de datos", "fas-exclamation-triangle", "#EF4444");
+            }
+        });
+    }
+
+    private void crearNuevoSemestre() {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Nuevo Semestre");
+        dialog.setHeaderText("Ingrese los datos del nuevo semestre");
+
+        TextField txtAnio = new TextField();
+        txtAnio.setPromptText("Ej: 2024");
+        ComboBox<Integer> cbPeriodo = new ComboBox<>(FXCollections.observableArrayList(1, 2));
+        cbPeriodo.getSelectionModel().selectFirst();
+
+        VBox content = new VBox(10,
+                new Label("Año:"), txtAnio,
+                new Label("Periodo:"), cbPeriodo
+        );
+        content.setPadding(new Insets(20));
+        content.setPrefWidth(300);
+
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        dialog.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                try {
+                    int anio = Integer.parseInt(txtAnio.getText());
+                    int periodo = cbPeriodo.getValue();
+
+                    Semestre s = new Semestre(0, anio, periodo);
+                    new SemestreDAO().insertarSemestre(s);
+
+                    recargarYNotificar("Semestre " + anio + "-" + periodo + " creado");
+                } catch (NumberFormatException e) {
+                    Alertas.mostrarMensaje("Dato inválido", "El año debe ser un número entero.", "fas-times", "#EF4444");
+                } catch (Exception e) {
+                    Alertas.mostrarMensaje("Error", "No se pudo guardar el semestre.", "fas-exclamation-triangle", "#EF4444");
+                }
+            }
+        });
+    }
 
     private static class ItemEstructura {
         int id; String nombre, tipo, icono; Object originalObject;
