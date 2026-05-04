@@ -1,6 +1,5 @@
 package galeria.components.views;
 
-import galeria.app.MainApp;
 import galeria.dao.*;
 import galeria.model.*;
 import galeria.util.Alertas;
@@ -17,14 +16,12 @@ import javafx.scene.paint.Color;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.util.Collections;
-import java.util.Optional;
 
 public class Categorizacion extends ScrollPane {
 
     private final String COLOR_GRIS_TEXTO = "#64748B";
     private final String COLOR_GRIS_ICONOS = "#94A3B8";
     private final String COLOR_AZUL = "#3F68E4";
-    private final String BG_HEADER = "#F8FAFC";
 
     private TableView<ItemEstructura> tabla;
     private ObservableList<ItemEstructura> masterData = FXCollections.observableArrayList();
@@ -46,39 +43,67 @@ public class Categorizacion extends ScrollPane {
 
         recargarDatosCompletos();
 
-        // Estilos globales de la tabla para ocultar bordes internos y ajustar el header
-        tabla.getStylesheets().add(getClass().getResource("/galeria/css/tabla_custom.css").toExternalForm());
-        // Si no tienes el CSS, estos estilos inline ayudan:
+        // Carga del CSS externo
+        try {
+            tabla.getStylesheets().add(getClass().getResource("/galeria/css/tabla_custom.css").toExternalForm());
+        } catch (Exception e) {
+            System.err.println("No se pudo cargar tabla_custom.css");
+        }
+
         tabla.setStyle("-fx-background-color: white; -fx-no-border: true; -fx-table-cell-border-color: transparent;");
     }
 
     private HBox crearHeader() {
+        // Contenedor de textos (Título y Subtítulo)
         VBox textos = new VBox(5);
         Label titulo = new Label("Gestión de Estructura");
         titulo.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #0F172A; -fx-font-family: 'Manrope';");
+
         Label sub = new Label("Administra las jerarquías académicas y organizativas de UniRepo.");
         sub.setStyle("-fx-text-fill: #414753; -fx-font-size: 16px; -fx-font-family: 'Manrope';");
+
         textos.getChildren().addAll(titulo, sub);
 
+        // Espaciador elástico para empujar el botón a la derecha
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
+        // Configuración del botón "Nuevo Atributo"
         btnNuevoAtributo = new Button("Nuevo Atributo");
-        btnNuevoAtributo.setGraphic(new FontIcon("fas-plus"));
-        btnNuevoAtributo.setStyle("-fx-background-color: " + COLOR_AZUL + "; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 12 25; -fx-font-weight: bold; -fx-font-family: 'Manrope';");
+
+        // Configuración del Icono (Blanco y con espacio)
+        FontIcon plusIcon = new FontIcon("fas-plus");
+        plusIcon.setIconColor(Color.WHITE); // Icono blanco
+        btnNuevoAtributo.setGraphic(plusIcon);
+        btnNuevoAtributo.setGraphicTextGap(10); // Espacio entre icono y texto
+
+        // Estilos visuales del botón
+        btnNuevoAtributo.setStyle(
+                "-fx-background-color: " + COLOR_AZUL + "; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-background-radius: 12; " +
+                        "-fx-padding: 12 25; " +
+                        "-fx-font-weight: bold; " +
+                        "-fx-font-family: 'Manrope';"
+        );
+
         btnNuevoAtributo.setCursor(Cursor.HAND);
         btnNuevoAtributo.setOnAction(e -> manejarNuevoAtributo());
+
+        // Animación de hover
         Animations.attachHoverLift(btnNuevoAtributo);
 
+        // Contenedor principal del Header
         HBox hb = new HBox(textos, spacer, btnNuevoAtributo);
         hb.setAlignment(Pos.CENTER_LEFT);
+
         return hb;
     }
 
     private HBox crearMenuFiltros() {
         HBox hb = new HBox(15);
         hb.setAlignment(Pos.CENTER_LEFT);
-        botonesFiltro.clear(); // Limpiar por si se vuelve a renderizar
+        botonesFiltro.clear();
 
         hb.getChildren().addAll(
                 crearBotonFiltro("Categorías", "fas-th-large"),
@@ -88,34 +113,27 @@ public class Categorizacion extends ScrollPane {
                 crearBotonFiltro("Semestres", "fas-calendar-alt")
         );
 
-        // Opcional: Seleccionar el primero por defecto visualmente
         if(!botonesFiltro.isEmpty()) actualizarEstilosBotones(botonesFiltro.get(0));
 
         return hb;
     }
 
-    // 3. Modifica crearBotonFiltro para manejar la exclusividad
     private Button crearBotonFiltro(String texto, String iconCode) {
         Button btn = new Button(texto);
         FontIcon icon = new FontIcon(iconCode);
         btn.setGraphic(icon);
         btn.setCursor(Cursor.HAND);
-
-        // Guardamos el botón en nuestra lista de control
         botonesFiltro.add(btn);
 
-        // Acción al hacer clic
         btn.setOnAction(e -> {
             filtroActual = texto;
             lblTituloTabla.setText("Listado de " + texto);
             filtrarTabla(texto);
-            actualizarEstilosBotones(btn); // <-- Aquí ocurre la magia de selección única
+            actualizarEstilosBotones(btn);
         });
 
-        // Aplicar estilo inicial (Inactivo)
         aplicarEstiloInactivo(btn);
 
-        // Hovers (Solo actúan si el botón no es el seleccionado actualmente)
         btn.setOnMouseEntered(e -> {
             if (!filtroActual.equals(texto)) aplicarEstiloHover(btn);
         });
@@ -126,37 +144,28 @@ public class Categorizacion extends ScrollPane {
         return btn;
     }
 
-    // 4. Agrega estos métodos auxiliares para gestionar los estados visuales
     private void actualizarEstilosBotones(Button botonSeleccionado) {
         for (Button btn : botonesFiltro) {
-            if (btn == botonSeleccionado) {
-                aplicarEstiloActivo(btn);
-            } else {
-                aplicarEstiloInactivo(btn);
-            }
+            if (btn == botonSeleccionado) aplicarEstiloActivo(btn);
+            else aplicarEstiloInactivo(btn);
         }
     }
 
     private void aplicarEstiloActivo(Button btn) {
-        btn.setStyle("-fx-background-color: white; -fx-border-color: " + COLOR_AZUL +
-                "; -fx-border-radius: 25; -fx-background-radius: 25; -fx-text-fill: " + COLOR_AZUL +
-                "; -fx-padding: 8 20; -fx-font-family: 'Manrope'; -fx-font-weight: bold; -fx-border-width: 2;");
+        btn.setStyle("-fx-background-color: white; -fx-border-color: " + COLOR_AZUL + "; -fx-border-radius: 25; -fx-background-radius: 25; -fx-text-fill: " + COLOR_AZUL + "; -fx-padding: 8 20; -fx-font-family: 'Manrope'; -fx-font-weight: bold; -fx-border-width: 2;");
         ((FontIcon) btn.getGraphic()).setIconColor(Color.web(COLOR_AZUL));
     }
 
     private void aplicarEstiloInactivo(Button btn) {
-        btn.setStyle("-fx-background-color: white; -fx-border-color: #414753; -fx-border-radius: 25; " +
-                "-fx-background-radius: 25; -fx-text-fill: #414753; -fx-padding: 8 20; " +
-                "-fx-font-family: 'Manrope'; -fx-font-weight: bold; -fx-border-width: 1;");
+        btn.setStyle("-fx-background-color: white; -fx-border-color: #414753; -fx-border-radius: 25; -fx-background-radius: 25; -fx-text-fill: #414753; -fx-padding: 8 20; -fx-font-family: 'Manrope'; -fx-font-weight: bold; -fx-border-width: 1;");
         ((FontIcon) btn.getGraphic()).setIconColor(Color.web("#414753"));
     }
 
     private void aplicarEstiloHover(Button btn) {
-        btn.setStyle("-fx-background-color: #F8FAFC; -fx-border-color: " + COLOR_AZUL +
-                "; -fx-border-radius: 25; -fx-background-radius: 25; -fx-text-fill: " + COLOR_AZUL +
-                "; -fx-padding: 8 20; -fx-font-family: 'Manrope'; -fx-font-weight: bold; -fx-border-width: 1;");
+        btn.setStyle("-fx-background-color: #F8FAFC; -fx-border-color: " + COLOR_AZUL + "; -fx-border-radius: 25; -fx-background-radius: 25; -fx-text-fill: " + COLOR_AZUL + "; -fx-padding: 8 20; -fx-font-family: 'Manrope'; -fx-font-weight: bold; -fx-border-width: 1;");
         ((FontIcon) btn.getGraphic()).setIconColor(Color.web(COLOR_AZUL));
     }
+
     private VBox crearSeccionTabla() {
         VBox container = new VBox(25);
         container.setPadding(new Insets(30));
@@ -167,8 +176,8 @@ public class Categorizacion extends ScrollPane {
 
         tabla = new TableView<>();
         tabla.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        tabla.setFixedCellSize(70); // Aumenta el alto para el padding moderno
-        tabla.setPrefHeight(450);
+        tabla.setFixedCellSize(70);
+        tabla.setPrefHeight(500); // Aumentado ligeramente ya que no hay footer
 
         // --- COLUMNA NOMBRE ---
         TableColumn<ItemEstructura, String> colNombre = new TableColumn<>("NOMBRE DEL ELEMENTO");
@@ -184,14 +193,13 @@ public class Categorizacion extends ScrollPane {
                     box.setPadding(new Insets(0, 0, 0, 10));
                     ItemEstructura row = getTableView().getItems().get(getIndex());
 
-                    // Contenedor del icono con fondo suave (como en la imagen)
                     StackPane iconHolder = new StackPane();
-                    iconHolder.setPadding(new Insets(8));
-                    iconHolder.setStyle("-fx-background-color: #F1F5F9; -fx-background-radius: 8;");
+                    iconHolder.setPrefSize(40, 40); // Cuadrado perfecto
+                    iconHolder.getStyleClass().add("icon-container");
+
                     FontIcon icon = new FontIcon(row.icono);
                     icon.setIconColor(Color.web(COLOR_AZUL));
                     iconHolder.getChildren().add(icon);
-                    iconHolder.getStyleClass().add("icon-container");
 
                     Label lbl = new Label(item);
                     lbl.setStyle("-fx-font-family: 'Manrope Bold'; -fx-font-size: 15px; -fx-text-fill: #0F172A;");
@@ -237,13 +245,10 @@ public class Categorizacion extends ScrollPane {
             private final Button btnEdit = new Button();
             private final Button btnDelete = new Button();
             {
-                FontIcon editIcon = new FontIcon("fas-pencil-alt");
-                editIcon.setIconColor(Color.web(COLOR_GRIS_ICONOS));
-                btnEdit.setGraphic(editIcon);
-
-                FontIcon trashIcon = new FontIcon("fas-trash-alt");
-                trashIcon.setIconColor(Color.web(COLOR_GRIS_ICONOS));
-                btnDelete.setGraphic(trashIcon);
+                btnEdit.setGraphic(new FontIcon("fas-pencil-alt"));
+                btnDelete.setGraphic(new FontIcon("fas-trash-alt"));
+                ((FontIcon)btnEdit.getGraphic()).setIconColor(Color.web(COLOR_GRIS_ICONOS));
+                ((FontIcon)btnDelete.getGraphic()).setIconColor(Color.web(COLOR_GRIS_ICONOS));
 
                 btnEdit.setStyle("-fx-background-color: transparent;");
                 btnDelete.setStyle("-fx-background-color: transparent;");
@@ -265,7 +270,6 @@ public class Categorizacion extends ScrollPane {
             }
         });
 
-        // Estilos para los Headers de las columnas
         for (TableColumn<?, ?> col : new TableColumn[] {colNombre, colTipo, colEstado, colAcciones}) {
             Label lblHeader = new Label(col.getText());
             lblHeader.setStyle("-fx-text-fill: " + COLOR_GRIS_TEXTO + "; -fx-font-family: 'Manrope'; -fx-font-weight: bold; -fx-font-size: 12px;");
@@ -275,26 +279,8 @@ public class Categorizacion extends ScrollPane {
 
         tabla.getColumns().addAll(colNombre, colTipo, colEstado, colAcciones);
 
-        // Footer con paginación
-        HBox footer = new HBox();
-        footer.setAlignment(Pos.CENTER_RIGHT);
-        footer.setPadding(new Insets(10, 0, 0, 0));
-
-        Label lblMostrando = new Label("Mostrando 4 de 12 elementos");
-        lblMostrando.setStyle("-fx-font-family: 'Manrope'; -fx-text-fill: #94A3B8;");
-        Region s = new Region(); HBox.setHgrow(s, Priority.ALWAYS);
-
-        HBox paginacion = new HBox(8);
-        paginacion.setAlignment(Pos.CENTER);
-        Button p1 = new Button("1");
-        p1.setStyle("-fx-background-color: " + COLOR_AZUL + "; -fx-text-fill: white; -fx-background-radius: 5;");
-        Button p2 = new Button("2");
-        p2.setStyle("-fx-background-color: white; -fx-border-color: #E2E8F0; -fx-text-fill: #64748B; -fx-background-radius: 5;");
-        paginacion.getChildren().addAll(new Button("<"), p1, p2, new Button(">"));
-
-        footer.getChildren().addAll(lblMostrando, s, paginacion);
-
-        container.getChildren().addAll(lblTituloTabla, tabla, footer);
+        // Ahora solo agregamos el título y la tabla al contenedor
+        container.getChildren().addAll(lblTituloTabla, tabla);
         return container;
     }
 
@@ -321,15 +307,12 @@ public class Categorizacion extends ScrollPane {
         dialog.setTitle("Editar Elemento");
         dialog.setHeaderText("Actualizar nombre de " + item.tipo);
         dialog.showAndWait().ifPresent(nuevo -> {
-            // Lógica de actualización DAO...
             recargarDatosCompletos();
             Alertas.mostrarMensaje("Éxito", "Actualizado", "fas-check", "#10B981");
         });
     }
 
-    private void manejarEliminacion(ItemEstructura item) {
-        // Tu lógica de alerta de confirmación...
-    }
+    private void manejarEliminacion(ItemEstructura item) { /* Lógica de eliminación */ }
 
     private void manejarNuevoAtributo() { System.out.println("Nuevo atributo para: " + filtroActual); }
 
