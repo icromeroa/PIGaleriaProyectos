@@ -19,6 +19,8 @@ import java.util.List;
 
 public class EditarProyecto extends ScrollPane {
 
+    private final String ESTILO_INPUTS = "-fx-font-family: 'Manrope'; -fx-padding: 10 15; -fx-font-size: 14px;";
+
     // El objeto que recibimos del "DetalleProyecto"
     private final Proyecto proyectoOriginal;
 
@@ -42,24 +44,21 @@ public class EditarProyecto extends ScrollPane {
     private TextField txtEnlaceExterno;
 
     public EditarProyecto(Proyecto proyectoRecibido) {
-        // 'proyectoRecibido' es la información que venía del detalle
         this.proyectoOriginal = proyectoRecibido;
         this.autoresEditados = new ArrayList<>(proyectoOriginal.getListaAutores());
 
         this.getStyleClass().add("scroll-pane");
         this.setFitToWidth(true);
 
-        // Importante: Cargar el CSS
         this.getStylesheets().add(getClass().getResource("/galeria/css/app.css").toExternalForm());
 
         VBox content = new VBox(35);
         content.setPadding(new Insets(40, 80, 40, 80));
         content.setMaxWidth(1000);
         content.setAlignment(Pos.TOP_CENTER);
-        content.setStyle("-fx-background-color: white; -fx-background-radius: 25; " +
-                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 30, 0, 0, 15);");
+        // Quitamos el sombreado como pediste anteriormente
+        content.setStyle("-fx-background-color: white; -fx-background-radius: 25;");
 
-        // --- CONSTRUCCIÓN DE LA VISTA ---
         content.getChildren().addAll(
                 crearHeader(),
                 crearSeccionGeneral(),
@@ -69,12 +68,11 @@ public class EditarProyecto extends ScrollPane {
         );
 
         this.setContent(new StackPane(content));
-        this.setPadding(new Insets(20));
+        this.setPadding(new Insets(0));
 
-        // Rellenar ComboBoxes y seleccionar los valores actuales del proyecto
+        // Rellenar ComboBoxes y seleccionar los valores actuales
         cargarDatosYPreseleccionar();
 
-        // Animación de entrada
         Animations.slideUpFadeIn(content, 100);
     }
 
@@ -110,19 +108,21 @@ public class EditarProyecto extends ScrollPane {
         VBox campos = new VBox(15);
 
         Label lblT = new Label("Título del proyecto");
-        lblT.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569;");
+        lblT.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569; -fx-font-family: 'Manrope';");
         txtTitulo = new TextField(proyectoOriginal.getTitulo());
         txtTitulo.getStyleClass().add("input-moderno");
+        txtTitulo.setStyle(ESTILO_INPUTS); // Aplicando Manrope y Padding
 
         Label lblR = new Label("Resumen");
-        lblR.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569;");
+        lblR.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569; -fx-font-family: 'Manrope';");
         txtResumen = new TextArea(proyectoOriginal.getResumen());
         txtResumen.getStyleClass().add("area-moderna");
         txtResumen.setPrefHeight(120);
         txtResumen.setWrapText(true);
+        txtResumen.setStyle(ESTILO_INPUTS); // Aplicando Manrope y Padding
 
         Label lblA = new Label("Autores vinculados");
-        lblA.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569;");
+        lblA.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569; -fx-font-family: 'Manrope';");
         contenedorAutores = new FlowPane(12, 12);
         actualizarPildorasAutores();
 
@@ -201,6 +201,59 @@ public class EditarProyecto extends ScrollPane {
         cbMateria = new ComboBox<>();
         cbSemestre = new ComboBox<>();
 
+        // --- CONFIGURACIÓN DE VISUALIZACIÓN DE TEXTO ---
+
+        // Categoría -> nombreCategoria
+        cbCategoria.setCellFactory(lv -> new ListCell<>() {
+            @Override protected void updateItem(Categoria item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "" : item.getNombreCategoria());
+            }
+        });
+        cbCategoria.setButtonCell(cbCategoria.getCellFactory().call(null));
+
+        // Facultad -> nombreFacultad
+        cbFacultad.setCellFactory(lv -> new ListCell<>() {
+            @Override protected void updateItem(Facultad item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "" : item.getNombreFacultad());
+            }
+        });
+        cbFacultad.setButtonCell(cbFacultad.getCellFactory().call(null));
+
+        // Programa -> nombrePrograma
+        cbPrograma.setCellFactory(lv -> new ListCell<>() {
+            @Override protected void updateItem(Programa item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "" : item.getNombrePrograma());
+            }
+        });
+        cbPrograma.setButtonCell(cbPrograma.getCellFactory().call(null));
+
+        // Materia -> nombreMateria
+        cbMateria.setCellFactory(lv -> new ListCell<>() {
+            @Override protected void updateItem(Materia item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "" : item.getNombreMateria());
+            }
+        });
+        cbMateria.setButtonCell(cbMateria.getCellFactory().call(null));
+
+// Semestre -> Mostrar como "2024 - 1"
+        cbSemestre.setCellFactory(lv -> new ListCell<>() {
+            @Override protected void updateItem(Semestre item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText("");
+                } else {
+                    // Usamos tus métodos reales: getAnio() y getPeriodo()
+                    setText(item.getAnio() + " - " + item.getPeriodo());
+                }
+            }
+        });
+        cbSemestre.setButtonCell(cbSemestre.getCellFactory().call(null));
+        // --- FIN CONFIGURACIÓN ---
+
         configCombo(cbCategoria, "Categoría", grid, 0, 0);
         configCombo(cbFacultad, "Facultad", grid, 1, 0);
         configCombo(cbPrograma, "Programa", grid, 0, 1);
@@ -214,8 +267,12 @@ public class EditarProyecto extends ScrollPane {
     private void configCombo(ComboBox<?> cb, String label, GridPane grid, int col, int row) {
         VBox box = new VBox(8);
         Label l = new Label(label);
-        l.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569;");
+        l.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569; -fx-font-family: 'Manrope';");
+
         cb.getStyleClass().add("combo-box-moderno");
+        // Esto asegura que el texto seleccionado (el "placeholder" con datos) tenga Manrope y padding
+        cb.setStyle("-fx-font-family: 'Manrope'; -fx-font-size: 14px; -fx-padding: 2;");
+
         cb.setMaxWidth(Double.MAX_VALUE);
         cb.setPrefHeight(45);
         box.getChildren().addAll(l, cb);
@@ -224,42 +281,81 @@ public class EditarProyecto extends ScrollPane {
     }
 
     private void cargarDatosYPreseleccionar() {
-        // Llenar listas
-        cbCategoria.getItems().addAll(new CategoriaDAO().listar());
-        cbFacultad.getItems().addAll(new FacultadDAO().listar());
-        cbPrograma.getItems().addAll(new ProgramaDAO().listar());
-        cbMateria.getItems().addAll(new MateriaDAO().listar());
-        cbSemestre.getItems().addAll(new SemestreDAO().listar());
+        // 1. Cargamos las listas desde la DB
+        cbCategoria.getItems().setAll(new CategoriaDAO().listar());
+        cbFacultad.getItems().setAll(new FacultadDAO().listar());
+        cbPrograma.getItems().setAll(new ProgramaDAO().listar());
+        cbMateria.getItems().setAll(new MateriaDAO().listar());
+        cbSemestre.getItems().setAll(new SemestreDAO().listar());
 
-        // Preseleccionar lo que ya tiene el proyecto (si no es null)
-        if(proyectoOriginal.getCategoria() != null) cbCategoria.setValue(proyectoOriginal.getCategoria());
-        if(proyectoOriginal.getFacultad() != null) cbFacultad.setValue(proyectoOriginal.getFacultad());
-        if(proyectoOriginal.getPrograma() != null) cbPrograma.setValue(proyectoOriginal.getPrograma());
-        if(proyectoOriginal.getMateria() != null) cbMateria.setValue(proyectoOriginal.getMateria());
-        if(proyectoOriginal.getSemestre() != null) cbSemestre.setValue(proyectoOriginal.getSemestre());
+        // 2. Preseleccionar comparando por ID
+        // Es CRUCIAL que el objeto seleccionado sea uno de los que acabamos de cargar en 'getItems()'
+
+        if (proyectoOriginal.getCategoria() != null) {
+            cbCategoria.getItems().stream()
+                    .filter(c -> c.getIdCategoria() == proyectoOriginal.getCategoria().getIdCategoria())
+                    .findFirst()
+                    .ifPresent(seleccion -> cbCategoria.getSelectionModel().select(seleccion));
+        }
+
+        if (proyectoOriginal.getFacultad() != null) {
+            cbFacultad.getItems().stream()
+                    .filter(f -> f.getIdFacultad() == proyectoOriginal.getFacultad().getIdFacultad())
+                    .findFirst()
+                    .ifPresent(seleccion -> cbFacultad.getSelectionModel().select(seleccion));
+        }
+
+        if (proyectoOriginal.getPrograma() != null) {
+            cbPrograma.getItems().stream()
+                    .filter(p -> p.getIdPrograma() == proyectoOriginal.getPrograma().getIdPrograma())
+                    .findFirst()
+                    .ifPresent(seleccion -> cbPrograma.getSelectionModel().select(seleccion));
+        }
+
+        if (proyectoOriginal.getMateria() != null) {
+            cbMateria.getItems().stream()
+                    .filter(m -> m.getIdMateria() == proyectoOriginal.getMateria().getIdMateria())
+                    .findFirst()
+                    .ifPresent(seleccion -> cbMateria.getSelectionModel().select(seleccion));
+        }
+
+        if (proyectoOriginal.getSemestre() != null) {
+            cbSemestre.getItems().stream()
+                    .filter(s -> s.getIdSemestre() == proyectoOriginal.getSemestre().getIdSemestre())
+                    .findFirst()
+                    .ifPresent(seleccion -> cbSemestre.getSelectionModel().select(seleccion));
+        }
     }
 
     private VBox crearSeccionMultimedia() {
+        // 1. DECLARACIÓN DE LA VARIABLE 'sec' (Esto es lo que falta)
         VBox sec = new VBox(20);
         Label header = crearBadgeSeccion("03", "Archivos y Multimedia");
 
         HBox layout = new HBox(40);
 
+        // Bloque de Portada
         VBox portBox = new VBox(10);
         Label lblP = new Label("Imagen de Portada");
-        lblP.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569;");
+        lblP.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569; -fx-font-family: 'Manrope';");
 
-        // Previsualización (Usa portadaURL del modelo)
         ImageView preview = new ImageView();
         try {
-            preview.setImage(new Image(proyectoOriginal.getPortadaURL()));
+            // Carga segura de la imagen actual
+            if (proyectoOriginal.getPortadaURL() != null && !proyectoOriginal.getPortadaURL().isEmpty()) {
+                preview.setImage(new Image(proyectoOriginal.getPortadaURL(), true));
+            } else {
+                throw new Exception("Sin URL");
+            }
         } catch (Exception e) {
             preview.setImage(new Image(getClass().getResourceAsStream("/galeria/resources/placeholder.png")));
         }
-        preview.setFitWidth(180); preview.setFitHeight(180);
+        preview.setFitWidth(180);
+        preview.setFitHeight(180);
         preview.setPreserveRatio(true);
         portBox.getChildren().addAll(lblP, preview);
 
+        // Bloque de Archivos
         VBox fileBox = new VBox(15);
         HBox.setHgrow(fileBox, Priority.ALWAYS);
 
@@ -267,44 +363,80 @@ public class EditarProyecto extends ScrollPane {
         dropZone.setAlignment(Pos.CENTER);
         dropZone.setPrefHeight(120);
         dropZone.setStyle("-fx-border-color: #CBD5E1; -fx-border-style: dashed; -fx-border-width: 2; -fx-border-radius: 15;");
-        dropZone.getChildren().addAll(new FontIcon("fas-cloud-upload-alt"), new Label("Arrastra tus archivos aquí (No habilitado)"));
 
-        // CORRECCIÓN AQUÍ: getArchivoURL() con mayúsculas
+        Label lblDrop = new Label("Arrastra tus archivos aquí (No habilitado)");
+        lblDrop.setStyle("-fx-font-family: 'Manrope'; -fx-text-fill: #94A3B8;");
+        dropZone.getChildren().addAll(new FontIcon("fas-cloud-upload-alt"), lblDrop);
+
+        Label lblEnlace = new Label("Enlace Externo (Repo/Web)");
+        lblEnlace.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569; -fx-font-family: 'Manrope';");
+
         txtEnlaceExterno = new TextField(proyectoOriginal.getArchivoURL());
         txtEnlaceExterno.getStyleClass().add("input-moderno");
+        // Aplicando Manrope y Padding solicitado
+        txtEnlaceExterno.setStyle("-fx-font-family: 'Manrope'; -fx-padding: 10 15; -fx-font-size: 14px;");
 
-        fileBox.getChildren().addAll(new Label("Archivos del Proyecto"), dropZone, new Label("Enlace Externo (Repo/Web)"), txtEnlaceExterno);
+        fileBox.getChildren().addAll(new Label("Archivos del Proyecto"), dropZone, lblEnlace, txtEnlaceExterno);
 
         layout.getChildren().addAll(portBox, fileBox);
+
+        // 2. AHORA 'sec' EXISTE Y PUEDES AGREGARLE HIJOS
         sec.getChildren().addAll(header, layout);
+
         return sec;
     }
 
     private HBox crearFooter() {
+        // --- BOTÓN ELIMINAR ---
         Button btnDelete = new Button("Eliminar Proyecto");
-        btnDelete.setGraphic(new FontIcon("fas-trash-alt"));
-        btnDelete.getStyleClass().add("boton-eliminar");
+        FontIcon trashIcon = new FontIcon("fas-trash-alt");
+        trashIcon.setIconColor(Color.web("#EF4444")); // Rojo para el icono
+
+        btnDelete.setGraphic(trashIcon);
+        // Letras rojas, sin fondo y fuente Manrope
+        btnDelete.setStyle("-fx-text-fill: #EF4444; -fx-font-family: 'Manrope'; -fx-font-weight: bold; -fx-background-color: transparent;");
+        btnDelete.setCursor(Cursor.HAND);
         btnDelete.setOnAction(e -> accionEliminar());
+
+        // Integración de animación Hover
+        Animations.attachHoverLift(btnDelete);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
+        // --- CONFIGURACIÓN DE ESTILO COMÚN PARA BOTONES DE ACCIÓN ---
+        // Radio de 30 para efecto "pill" (completamente redondeado)
+        String estiloBaseBotones = "-fx-font-family: 'Manrope'; -fx-font-weight: bold; -fx-background-radius: 30; -fx-border-radius: 30; -fx-font-size: 14px;";
+
+        // --- BOTÓN CANCELAR ---
         Button btnCancel = new Button("Cancelar");
-        btnCancel.getStyleClass().add("boton-cancelar");
+        btnCancel.setPrefHeight(48);
+        btnCancel.setPrefWidth(120); // Más delgado
+        btnCancel.setStyle(estiloBaseBotones + "-fx-background-color: #F1F5F9; -fx-text-fill: #64748B; -fx-border-color: #E2E8F0; -fx-border-width: 1;");
+        btnCancel.setCursor(Cursor.HAND);
         btnCancel.setOnAction(e -> MainApp.setView(new DetalleProyecto(proyectoOriginal, null)));
 
+        // Integración de animación Hover
+        Animations.attachHoverLift(btnCancel);
+
+        // --- BOTÓN GUARDAR CAMBIOS ---
         Button btnSave = new Button("Guardar Cambios");
-        btnSave.getStyleClass().add("boton-guardar");
-        btnSave.setPrefWidth(180);
-        btnSave.setPrefHeight(45);
+        btnSave.setPrefHeight(48);
+        btnSave.setPrefWidth(200); // Más ancho
+        btnSave.setStyle(estiloBaseBotones + "-fx-background-color: #F97316; -fx-text-fill: white;");
+        btnSave.setCursor(Cursor.HAND);
         btnSave.setOnAction(e -> accionGuardar());
 
-        HBox h = new HBox(25, btnDelete, spacer, btnCancel, btnSave);
+        // Integración de animación Hover
+        Animations.attachHoverLift(btnSave);
+
+        // --- LAYOUT FINAL ---
+        HBox h = new HBox(15, btnDelete, spacer, btnCancel, btnSave);
         h.setAlignment(Pos.CENTER_LEFT);
-        h.setPadding(new Insets(20, 0, 0, 0));
+        h.setPadding(new Insets(30, 0, 0, 0));
+
         return h;
     }
-
     private Label crearBadgeSeccion(String num, String text) {
         HBox h = new HBox(12);
         Label n = new Label(num);
