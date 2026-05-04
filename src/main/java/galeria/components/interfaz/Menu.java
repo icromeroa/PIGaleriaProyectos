@@ -1,10 +1,7 @@
 package galeria.components.interfaz;
 
 import galeria.app.MainApp;
-import galeria.components.views.Catalogo;
-import galeria.components.views.GestionUsuarios;
-import galeria.components.views.Guardados;
-import galeria.components.views.Inicio;
+import galeria.components.views.*;
 import galeria.util.Animations;
 import galeria.util.Sesion;
 import galeria.model.Usuario;
@@ -274,6 +271,7 @@ public class Menu extends VBox {
     }
 
     // ── Navegación ────────────────────────────────────────
+// ── Navegación ────────────────────────────────────────
     private void navegar(String destino) {
         switch (destino) {
             case "Inicio"          -> MainApp.setView(new Inicio());
@@ -282,7 +280,18 @@ public class Menu extends VBox {
             case "Categorias"      -> MainApp.setView(placeholder("Categorías"));
             case "Guardados"       -> MainApp.setView(new Guardados());
             case "Usuarios"        -> MainApp.setView(new GestionUsuarios());
-            case "Perfil"          -> MainApp.setView(placeholder("Perfil"));
+
+            // CAMBIA ESTA LÍNEA:
+            case "Perfil"          -> {
+                Usuario u = Sesion.getUsuario();
+                if (u != null) {
+                    MainApp.setView(new Perfil(u));
+                } else {
+                    // Opcional: si por alguna razón no hay sesión,
+                    // puedes mandarlo al inicio o al login
+                    MainApp.setView(new Inicio());
+                }
+            }
         }
     }
 

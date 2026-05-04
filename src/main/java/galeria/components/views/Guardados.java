@@ -3,8 +3,10 @@ package galeria.components.views;
 import galeria.components.interfaz.CardProyecto;
 import galeria.dao.GuardadoDAO;
 import galeria.model.Proyecto;
+import galeria.util.Animations; // Importamos las animaciones
 import galeria.util.CardStyle;
 import galeria.util.Sesion;
+import javafx.application.Platform; // Necesario para disparar la animación al cargar
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -45,7 +47,6 @@ public class Guardados extends ScrollPane {
 
         // Lógica de carga
         if (Sesion.getUsuario() != null) {
-            // Se usa el método listarProyectosGuardados que creamos en el DAO
             List<Proyecto> guardados = guardadoDAO.listarProyectosGuardados(Sesion.getUsuario().getIdUsuario());
 
             if (guardados.isEmpty()) {
@@ -53,11 +54,16 @@ public class Guardados extends ScrollPane {
                 lblVacio.setStyle("-fx-font-size: 16; -fx-text-fill: #94A3B8; -fx-font-style: italic;");
                 flowPane.getChildren().add(lblVacio);
             } else {
+                double delay = 200; // Retraso inicial para las tarjetas
                 for (Proyecto p : guardados) {
-                    // Usamos tu CardProyecto
                     CardProyecto card = new CardProyecto(p, CardStyle.NORMAL);
-                    card.setPrefWidth(300); // Tamaño sugerido para que quepan varias por fila
+                    card.setPrefWidth(300);
                     flowPane.getChildren().add(card);
+
+                    // Aplicamos animación individual escalonada a cada tarjeta
+                    double finalDelay = delay;
+                    Platform.runLater(() -> Animations.revealProjectCard(card, finalDelay));
+                    delay += 100; // Incrementamos el delay para la siguiente tarjeta
                 }
             }
         } else {
@@ -66,5 +72,10 @@ public class Guardados extends ScrollPane {
 
         root.getChildren().addAll(header, flowPane);
         this.setContent(root);
+
+        // ANIMACIÓN DE ENTRADA PARA LA CABECERA
+        Platform.runLater(() -> {
+            Animations.slideUpFadeIn(header, 100);
+        });
     }
 }

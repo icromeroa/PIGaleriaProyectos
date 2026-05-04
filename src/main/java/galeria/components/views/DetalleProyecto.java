@@ -18,6 +18,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import org.kordamp.ikonli.javafx.FontIcon;
+import galeria.dao.VisualizacionDAO;
 
 import java.awt.Desktop;
 import java.net.URI;
@@ -32,6 +33,7 @@ public class DetalleProyecto extends ScrollPane {
     private ValoracionDAO valoracionDAO = new ValoracionDAO();
     private RecursoDAO recursoDAO = new RecursoDAO();
     private ProyectoDAO proyectoDAO = new ProyectoDAO();
+    private VisualizacionDAO visualizacionDAO = new VisualizacionDAO();
     private List<FontIcon> estrellasIcons = new ArrayList<>();
 
     private Button btnGuardar;
@@ -39,6 +41,13 @@ public class DetalleProyecto extends ScrollPane {
 
     public DetalleProyecto(Proyecto p, Usuario userIgnored) {
         this.proyecto = p;
+
+        if (Sesion.estaLogueado()) {
+            visualizacionDAO.registrarVisualizacion(
+                    Sesion.getUsuario().getIdUsuario(),
+                    p.getIdProyecto()
+            );
+        }
 
         this.setFitToWidth(true);
         this.setPannable(true);
