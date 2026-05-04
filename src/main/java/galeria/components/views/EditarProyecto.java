@@ -21,59 +21,65 @@ public class EditarProyecto extends ScrollPane {
 
     private final String ESTILO_INPUTS = "-fx-font-family: 'Manrope'; -fx-padding: 10 15; -fx-font-size: 14px;";
 
-    // El objeto que recibimos del "DetalleProyecto"
     private final Proyecto proyectoOriginal;
-
     private final ProyectoDAO proyectoDAO = new ProyectoDAO();
     private final AutorDAO autorDAO = new AutorDAO();
 
-    // Inputs de información general
     private TextField txtTitulo;
     private TextArea txtResumen;
     private FlowPane contenedorAutores;
     private List<Autor> autoresEditados;
 
-    // Inputs de categorización
     private ComboBox<Categoria> cbCategoria;
     private ComboBox<Facultad> cbFacultad;
     private ComboBox<Programa> cbPrograma;
     private ComboBox<Materia> cbMateria;
     private ComboBox<Semestre> cbSemestre;
 
-    // Multimedia
     private TextField txtEnlaceExterno;
 
     public EditarProyecto(Proyecto proyectoRecibido) {
+        System.out.println("[DEBUG] Iniciando EditarProyecto...");
+        if (proyectoRecibido == null) {
+            System.out.println("[ERROR] El proyectoRecibido es NULO. Por eso no se ve nada.");
+        } else {
+            System.out.println("[DEBUG] Recibido Proyecto ID: " + proyectoRecibido.getIdProyecto());
+            System.out.println("[DEBUG] Título: " + proyectoRecibido.getTitulo());
+        }
+
         this.proyectoOriginal = proyectoRecibido;
-        this.autoresEditados = new ArrayList<>(proyectoOriginal.getListaAutores());
+        this.autoresEditados = (proyectoOriginal != null) ? new ArrayList<>(proyectoOriginal.getListaAutores()) : new ArrayList<>();
 
         this.getStyleClass().add("scroll-pane");
         this.setFitToWidth(true);
-
         this.getStylesheets().add(getClass().getResource("/galeria/css/app.css").toExternalForm());
 
         VBox content = new VBox(35);
         content.setPadding(new Insets(40, 80, 40, 80));
         content.setMaxWidth(1000);
         content.setAlignment(Pos.TOP_CENTER);
-        // Quitamos el sombreado como pediste anteriormente
         content.setStyle("-fx-background-color: white; -fx-background-radius: 25;");
 
-        content.getChildren().addAll(
-                crearHeader(),
-                crearSeccionGeneral(),
-                crearSeccionCategorizacion(),
-                crearSeccionMultimedia(),
-                crearFooter()
-        );
+        if (proyectoOriginal != null) {
+            content.getChildren().addAll(
+                    crearHeader(),
+                    crearSeccionGeneral(),
+                    crearSeccionCategorizacion(),
+                    crearSeccionMultimedia(),
+                    crearFooter()
+            );
+        } else {
+            content.getChildren().add(new Label("Error: No se pudo cargar la información del proyecto."));
+        }
 
         this.setContent(new StackPane(content));
         this.setPadding(new Insets(0));
 
-        // Rellenar ComboBoxes y seleccionar los valores actuales
+        System.out.println("[DEBUG] Llamando a cargarDatosYPreseleccionar()...");
         cargarDatosYPreseleccionar();
 
         Animations.slideUpFadeIn(content, 100);
+        System.out.println("[DEBUG] Vista EditarProyecto construida.");
     }
 
     private HBox crearHeader() {
@@ -93,8 +99,10 @@ public class EditarProyecto extends ScrollPane {
         btnClose.setGraphic(new FontIcon("fas-times"));
         btnClose.setStyle("-fx-background-color: transparent; -fx-font-size: 20; -fx-text-fill: #64748B;");
         btnClose.setCursor(Cursor.HAND);
-        // Volver atrás sin guardar
-        btnClose.setOnAction(e -> MainApp.setView(new DetalleProyecto(proyectoOriginal, null)));
+        btnClose.setOnAction(e -> {
+            System.out.println("[DEBUG] Cerrar edición. Volviendo a Detalle.");
+            MainApp.setView(new DetalleProyecto(proyectoOriginal, null));
+        });
 
         HBox h = new HBox(info, spacer, btnClose);
         h.setAlignment(Pos.CENTER_LEFT);
@@ -111,7 +119,7 @@ public class EditarProyecto extends ScrollPane {
         lblT.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569; -fx-font-family: 'Manrope';");
         txtTitulo = new TextField(proyectoOriginal.getTitulo());
         txtTitulo.getStyleClass().add("input-moderno");
-        txtTitulo.setStyle(ESTILO_INPUTS); // Aplicando Manrope y Padding
+        txtTitulo.setStyle(ESTILO_INPUTS);
 
         Label lblR = new Label("Resumen");
         lblR.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569; -fx-font-family: 'Manrope';");
@@ -119,7 +127,7 @@ public class EditarProyecto extends ScrollPane {
         txtResumen.getStyleClass().add("area-moderna");
         txtResumen.setPrefHeight(120);
         txtResumen.setWrapText(true);
-        txtResumen.setStyle(ESTILO_INPUTS); // Aplicando Manrope y Padding
+        txtResumen.setStyle(ESTILO_INPUTS);
 
         Label lblA = new Label("Autores vinculados");
         lblA.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569; -fx-font-family: 'Manrope';");
@@ -146,6 +154,7 @@ public class EditarProyecto extends ScrollPane {
             btnX.setStyle("-fx-background-color: transparent; -fx-padding: 0; -fx-text-fill: #94A3B8;");
             btnX.setCursor(Cursor.HAND);
             btnX.setOnAction(e -> {
+                System.out.println("[DEBUG] Removiendo autor: " + a.getNombreAutor());
                 autoresEditados.remove(a);
                 actualizarPildorasAutores();
             });
@@ -163,6 +172,7 @@ public class EditarProyecto extends ScrollPane {
     }
 
     private void mostrarModalNuevoAutor() {
+        System.out.println("[DEBUG] Abriendo modal de nuevo autor");
         Dialog<Autor> dialog = new Dialog<>();
         dialog.setTitle("Nuevo Autor");
 
@@ -183,6 +193,7 @@ public class EditarProyecto extends ScrollPane {
         dialog.setResultConverter(b -> b == btnOk ? new Autor(0, n.getText(), c.getText()) : null);
 
         dialog.showAndWait().ifPresent(autor -> {
+            System.out.println("[DEBUG] Autor agregado: " + autor.getNombreAutor());
             autoresEditados.add(autor);
             actualizarPildorasAutores();
         });
@@ -201,9 +212,6 @@ public class EditarProyecto extends ScrollPane {
         cbMateria = new ComboBox<>();
         cbSemestre = new ComboBox<>();
 
-        // --- CONFIGURACIÓN DE VISUALIZACIÓN DE TEXTO ---
-
-        // Categoría -> nombreCategoria
         cbCategoria.setCellFactory(lv -> new ListCell<>() {
             @Override protected void updateItem(Categoria item, boolean empty) {
                 super.updateItem(item, empty);
@@ -212,7 +220,6 @@ public class EditarProyecto extends ScrollPane {
         });
         cbCategoria.setButtonCell(cbCategoria.getCellFactory().call(null));
 
-        // Facultad -> nombreFacultad
         cbFacultad.setCellFactory(lv -> new ListCell<>() {
             @Override protected void updateItem(Facultad item, boolean empty) {
                 super.updateItem(item, empty);
@@ -221,7 +228,6 @@ public class EditarProyecto extends ScrollPane {
         });
         cbFacultad.setButtonCell(cbFacultad.getCellFactory().call(null));
 
-        // Programa -> nombrePrograma
         cbPrograma.setCellFactory(lv -> new ListCell<>() {
             @Override protected void updateItem(Programa item, boolean empty) {
                 super.updateItem(item, empty);
@@ -230,7 +236,6 @@ public class EditarProyecto extends ScrollPane {
         });
         cbPrograma.setButtonCell(cbPrograma.getCellFactory().call(null));
 
-        // Materia -> nombreMateria
         cbMateria.setCellFactory(lv -> new ListCell<>() {
             @Override protected void updateItem(Materia item, boolean empty) {
                 super.updateItem(item, empty);
@@ -239,20 +244,17 @@ public class EditarProyecto extends ScrollPane {
         });
         cbMateria.setButtonCell(cbMateria.getCellFactory().call(null));
 
-// Semestre -> Mostrar como "2024 - 1"
         cbSemestre.setCellFactory(lv -> new ListCell<>() {
             @Override protected void updateItem(Semestre item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
                     setText("");
                 } else {
-                    // Usamos tus métodos reales: getAnio() y getPeriodo()
                     setText(item.getAnio() + " - " + item.getPeriodo());
                 }
             }
         });
         cbSemestre.setButtonCell(cbSemestre.getCellFactory().call(null));
-        // --- FIN CONFIGURACIÓN ---
 
         configCombo(cbCategoria, "Categoría", grid, 0, 0);
         configCombo(cbFacultad, "Facultad", grid, 1, 0);
@@ -268,11 +270,8 @@ public class EditarProyecto extends ScrollPane {
         VBox box = new VBox(8);
         Label l = new Label(label);
         l.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569; -fx-font-family: 'Manrope';");
-
         cb.getStyleClass().add("combo-box-moderno");
-        // Esto asegura que el texto seleccionado (el "placeholder" con datos) tenga Manrope y padding
         cb.setStyle("-fx-font-family: 'Manrope'; -fx-font-size: 14px; -fx-padding: 2;");
-
         cb.setMaxWidth(Double.MAX_VALUE);
         cb.setPrefHeight(45);
         box.getChildren().addAll(l, cb);
@@ -281,17 +280,21 @@ public class EditarProyecto extends ScrollPane {
     }
 
     private void cargarDatosYPreseleccionar() {
-        // 1. Cargamos las listas desde la DB
-        cbCategoria.getItems().setAll(new CategoriaDAO().listar());
-        cbFacultad.getItems().setAll(new FacultadDAO().listar());
-        cbPrograma.getItems().setAll(new ProgramaDAO().listar());
-        cbMateria.getItems().setAll(new MateriaDAO().listar());
-        cbSemestre.getItems().setAll(new SemestreDAO().listar());
+        System.out.println("[DEBUG] Iniciando carga de datos en Combos...");
 
-        // 2. Preseleccionar comparando por ID
-        // Es CRUCIAL que el objeto seleccionado sea uno de los que acabamos de cargar en 'getItems()'
+        try {
+            cbCategoria.getItems().setAll(new CategoriaDAO().listar());
+            cbFacultad.getItems().setAll(new FacultadDAO().listar());
+            cbPrograma.getItems().setAll(new ProgramaDAO().listar());
+            cbMateria.getItems().setAll(new MateriaDAO().listar());
+            cbSemestre.getItems().setAll(new SemestreDAO().listar());
+            System.out.println("[DEBUG] Listas de DAOs cargadas correctamente.");
+        } catch (Exception e) {
+            System.out.println("[ERROR] Falló la carga de datos desde la DB: " + e.getMessage());
+        }
 
         if (proyectoOriginal.getCategoria() != null) {
+            System.out.println("[DEBUG] Preseleccionando Categoría ID: " + proyectoOriginal.getCategoria().getIdCategoria());
             cbCategoria.getItems().stream()
                     .filter(c -> c.getIdCategoria() == proyectoOriginal.getCategoria().getIdCategoria())
                     .findFirst()
@@ -325,37 +328,59 @@ public class EditarProyecto extends ScrollPane {
                     .findFirst()
                     .ifPresent(seleccion -> cbSemestre.getSelectionModel().select(seleccion));
         }
+        System.out.println("[DEBUG] Fin de preselección.");
     }
 
     private VBox crearSeccionMultimedia() {
-        // 1. DECLARACIÓN DE LA VARIABLE 'sec' (Esto es lo que falta)
+        System.out.println("[DEBUG] Creando sección multimedia...");
         VBox sec = new VBox(20);
         Label header = crearBadgeSeccion("03", "Archivos y Multimedia");
-
         HBox layout = new HBox(40);
 
-        // Bloque de Portada
         VBox portBox = new VBox(10);
         Label lblP = new Label("Imagen de Portada");
         lblP.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569; -fx-font-family: 'Manrope';");
 
         ImageView preview = new ImageView();
+
+        // --- LOGICA DE CARGA SEGURA ---
+// REEMPLAZA todo el bloque try/catch de la imagen por esto:
         try {
-            // Carga segura de la imagen actual
-            if (proyectoOriginal.getPortadaURL() != null && !proyectoOriginal.getPortadaURL().isEmpty()) {
-                preview.setImage(new Image(proyectoOriginal.getPortadaURL(), true));
+            String url = proyectoOriginal.getPortadaURL();
+            System.out.println("[DEBUG] URL de portada: " + url);
+
+            if (url != null && !url.trim().isEmpty()) {
+                String ruta = url.startsWith("/") ? url : "/" + url;
+
+                // Intento 1: classpath
+                var resource = getClass().getResource(ruta);
+                if (resource != null) {
+                    preview.setImage(new Image(resource.toExternalForm()));
+                } else {
+                    // Intento 2: filesystem directo
+                    java.io.File archivo = new java.io.File("src/main/resources" + ruta);
+                    if (archivo.exists()) {
+                        preview.setImage(new Image(archivo.toURI().toString()));
+                    } else {
+                        // Fallback: imagen por defecto
+                        cargarImagenPorDefecto(preview);
+                    }
+                }
             } else {
-                throw new Exception("Sin URL");
+                // Sin URL: imagen por defecto
+                cargarImagenPorDefecto(preview);
             }
         } catch (Exception e) {
-            preview.setImage(new Image(getClass().getResourceAsStream("/galeria/resources/placeholder.png")));
+            System.out.println("[ERROR] No se pudo cargar la imagen: " + e.getMessage());
+            cargarImagenPorDefecto(preview);
         }
+        // ------------------------------
+
         preview.setFitWidth(180);
         preview.setFitHeight(180);
         preview.setPreserveRatio(true);
         portBox.getChildren().addAll(lblP, preview);
 
-        // Bloque de Archivos
         VBox fileBox = new VBox(15);
         HBox.setHgrow(fileBox, Priority.ALWAYS);
 
@@ -373,70 +398,66 @@ public class EditarProyecto extends ScrollPane {
 
         txtEnlaceExterno = new TextField(proyectoOriginal.getArchivoURL());
         txtEnlaceExterno.getStyleClass().add("input-moderno");
-        // Aplicando Manrope y Padding solicitado
         txtEnlaceExterno.setStyle("-fx-font-family: 'Manrope'; -fx-padding: 10 15; -fx-font-size: 14px;");
 
         fileBox.getChildren().addAll(new Label("Archivos del Proyecto"), dropZone, lblEnlace, txtEnlaceExterno);
-
         layout.getChildren().addAll(portBox, fileBox);
-
-        // 2. AHORA 'sec' EXISTE Y PUEDES AGREGARLE HIJOS
         sec.getChildren().addAll(header, layout);
 
         return sec;
     }
 
     private HBox crearFooter() {
-        // --- BOTÓN ELIMINAR ---
         Button btnDelete = new Button("Eliminar Proyecto");
         FontIcon trashIcon = new FontIcon("fas-trash-alt");
-        trashIcon.setIconColor(Color.web("#EF4444")); // Rojo para el icono
+        trashIcon.setIconColor(Color.web("#EF4444"));
 
         btnDelete.setGraphic(trashIcon);
-        // Letras rojas, sin fondo y fuente Manrope
         btnDelete.setStyle("-fx-text-fill: #EF4444; -fx-font-family: 'Manrope'; -fx-font-weight: bold; -fx-background-color: transparent;");
         btnDelete.setCursor(Cursor.HAND);
-        btnDelete.setOnAction(e -> accionEliminar());
+        btnDelete.setOnAction(e -> {
+            System.out.println("[DEBUG] Botón eliminar presionado.");
+            accionEliminar();
+        });
 
-        // Integración de animación Hover
         Animations.attachHoverLift(btnDelete);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // --- CONFIGURACIÓN DE ESTILO COMÚN PARA BOTONES DE ACCIÓN ---
-        // Radio de 30 para efecto "pill" (completamente redondeado)
         String estiloBaseBotones = "-fx-font-family: 'Manrope'; -fx-font-weight: bold; -fx-background-radius: 30; -fx-border-radius: 30; -fx-font-size: 14px;";
 
-        // --- BOTÓN CANCELAR ---
         Button btnCancel = new Button("Cancelar");
         btnCancel.setPrefHeight(48);
-        btnCancel.setPrefWidth(120); // Más delgado
+        btnCancel.setPrefWidth(120);
         btnCancel.setStyle(estiloBaseBotones + "-fx-background-color: #F1F5F9; -fx-text-fill: #64748B; -fx-border-color: #E2E8F0; -fx-border-width: 1;");
         btnCancel.setCursor(Cursor.HAND);
-        btnCancel.setOnAction(e -> MainApp.setView(new DetalleProyecto(proyectoOriginal, null)));
+        btnCancel.setOnAction(e -> {
+            System.out.println("[DEBUG] Cancelar presionado.");
+            MainApp.setView(new DetalleProyecto(proyectoOriginal, null));
+        });
 
-        // Integración de animación Hover
         Animations.attachHoverLift(btnCancel);
 
-        // --- BOTÓN GUARDAR CAMBIOS ---
         Button btnSave = new Button("Guardar Cambios");
         btnSave.setPrefHeight(48);
-        btnSave.setPrefWidth(200); // Más ancho
+        btnSave.setPrefWidth(200);
         btnSave.setStyle(estiloBaseBotones + "-fx-background-color: #F97316; -fx-text-fill: white;");
         btnSave.setCursor(Cursor.HAND);
-        btnSave.setOnAction(e -> accionGuardar());
+        btnSave.setOnAction(e -> {
+            System.out.println("[DEBUG] Guardar Cambios presionado.");
+            accionGuardar();
+        });
 
-        // Integración de animación Hover
         Animations.attachHoverLift(btnSave);
 
-        // --- LAYOUT FINAL ---
         HBox h = new HBox(15, btnDelete, spacer, btnCancel, btnSave);
         h.setAlignment(Pos.CENTER_LEFT);
         h.setPadding(new Insets(30, 0, 0, 0));
 
         return h;
     }
+
     private Label crearBadgeSeccion(String num, String text) {
         HBox h = new HBox(12);
         Label n = new Label(num);
@@ -451,37 +472,66 @@ public class EditarProyecto extends ScrollPane {
     }
 
     private void accionGuardar() {
-        // Actualizar el objeto con lo que hay en los inputs
+        System.out.println("[DEBUG] Iniciando accionGuardar()...");
         proyectoOriginal.setTitulo(txtTitulo.getText());
         proyectoOriginal.setResumen(txtResumen.getText());
-        proyectoOriginal.setArchivoURL(txtEnlaceExterno.getText()); // CORREGIDO
+        proyectoOriginal.setArchivoURL(txtEnlaceExterno.getText());
 
         proyectoOriginal.setCategoria(cbCategoria.getValue());
         proyectoOriginal.setFacultad(cbFacultad.getValue());
         proyectoOriginal.setPrograma(cbPrograma.getValue());
         proyectoOriginal.setMateria(cbMateria.getValue());
         proyectoOriginal.setSemestre(cbSemestre.getValue());
-
         proyectoOriginal.setListaAutores(autoresEditados);
 
-        // Llamar al DAO para persistir en DB
+        System.out.println("[DEBUG] Ejecutando UPDATE en base de datos para ID: " + proyectoOriginal.getIdProyecto());
         proyectoDAO.actualizarProyecto(proyectoOriginal);
 
-        // Feedback y navegación
-        System.out.println("Proyecto actualizado con éxito.");
+        System.out.println("[DEBUG] Proyecto actualizado con éxito.");
         MainApp.setView(new DetalleProyecto(proyectoOriginal, null));
     }
 
     private void accionEliminar() {
+        System.out.println("[DEBUG] Confirmando eliminación...");
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "¿Estás seguro de eliminar este proyecto?", ButtonType.YES, ButtonType.NO);
         alert.setTitle("Confirmar eliminación");
         alert.setHeaderText(null);
         alert.showAndWait().ifPresent(res -> {
             if (res == ButtonType.YES) {
+                System.out.println("[DEBUG] Eliminando de DB el Proyecto ID: " + proyectoOriginal.getIdProyecto());
                 proyectoDAO.eliminarProyecto(proyectoOriginal.getIdProyecto());
-                // Redirigir a una vista general (ejemplo Categorías)
                 MainApp.setView(new Categorias());
+            } else {
+                System.out.println("[DEBUG] Eliminación cancelada por el usuario.");
             }
         });
+    }
+
+    private void cargarImagenPorDefecto(javafx.scene.image.ImageView iv) {
+        // Rutas posibles del placeholder
+        String[] rutas = {
+                "/galeria/images.PD/p1.jpg",
+                "/galeria/images/PD/p1.jpg",
+                "/galeria/images.PD/p1.png",
+                "/galeria/images/PD/p1.png"
+        };
+        for (String ruta : rutas) {
+            try {
+                var res = getClass().getResource(ruta);
+                if (res != null) {
+                    iv.setImage(new javafx.scene.image.Image(res.toExternalForm()));
+                    System.out.println("[DEFAULT IMG] Cargada: " + ruta);
+                    return;
+                }
+                java.io.File f = new java.io.File("src/main/resources" + ruta);
+                if (f.exists()) {
+                    iv.setImage(new javafx.scene.image.Image(f.toURI().toString()));
+                    System.out.println("[DEFAULT IMG] Cargada desde filesystem: " + ruta);
+                    return;
+                }
+            } catch (Exception ignored) {}
+        }
+        // Si ninguna funciona, fondo gris — sin imagen
+        System.out.println("[DEFAULT IMG] No se encontró ningún placeholder, usando fondo gris.");
     }
 }

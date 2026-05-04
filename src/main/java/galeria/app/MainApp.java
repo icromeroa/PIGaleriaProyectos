@@ -11,25 +11,21 @@ import javafx.scene.Scene;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import java.util.Stack;
 
 public class MainApp extends Application {
 
-    private static StackPane root; // Raíz para capas (Overlay: UI + Menús flotantes)
-    private static BorderPane mainLayout; // Estructura base (Top: Navbar, Center: Vistas)
+    private static StackPane root;
+    private static BorderPane mainLayout;
     private static Navbar navbarInstance;
 
-    /**
-     * Devuelve la instancia única y persistente del Navbar.
-     * Esto evita que la animación de la línea azul se resetee al cambiar de vista.
-     */
+    // Historial para permitir la navegación hacia atrás
+    private static final Stack<Node> historialVistas = new Stack<>();
+
     public static Navbar getNavbar() {
         return navbarInstance;
     }
 
-    /**
-     * Actualiza solo los botones de sesión (Login/Hamburguesa)
-     * sin reconstruir el objeto Navbar.
-     */
     public static void actualizarNavbar() {
         if (navbarInstance != null) {
             navbarInstance.actualizarBotonSesion();
@@ -38,33 +34,28 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage stage) {
-        // 1. Inicializar contenedores principales
         root = new StackPane();
         mainLayout = new BorderPane();
         mainLayout.setStyle("-fx-background-color: #ffffff;");
 
-        // 2. Crear la Navbar UNA SOLA VEZ
         navbarInstance = new Navbar();
 
-        // 3. Configurar el Wrapper de la Navbar (Capa superior fija)
         StackPane navbarWrapper = new StackPane(navbarInstance);
         navbarWrapper.setPadding(new Insets(20, 40, 10, 40));
-        navbarWrapper.setPickOnBounds(false); // Permite clics a través de las áreas transparentes
+        navbarWrapper.setPickOnBounds(false);
 
         mainLayout.setTop(navbarWrapper);
-        mainLayout.setCenter(new Inicio()); // Vista inicial por defecto
 
-        // 4. Montar la jerarquía en el StackPane 'root'
+        // Vista inicial
+        setView(new Inicio());
+
         root.getChildren().add(mainLayout);
 
-        // 5. Agregar el Menú Overlay (Debe estar en root para flotar sobre el Center)
-        // Usamos la instancia del menú que ya vive dentro de navbarInstance
         Node menuOverlay = navbarInstance.getMenu();
         root.getChildren().add(menuOverlay);
         StackPane.setAlignment(menuOverlay, Pos.TOP_RIGHT);
         StackPane.setMargin(menuOverlay, new Insets(85, 40, 0, 0));
 
-        // 6. Configuración de Escena y CSS
         Scene scene = new Scene(root, 1280, 820);
         try {
             String css = getClass().getResource("/galeria/css/app.css").toExternalForm();
@@ -77,7 +68,6 @@ public class MainApp extends Application {
         stage.setScene(scene);
         stage.show();
 
-        // 7. Animación de entrada de la aplicación
         root.setOpacity(0);
         FadeTransition ft = new FadeTransition(Duration.millis(800), root);
         ft.setFromValue(0);
@@ -86,23 +76,37 @@ public class MainApp extends Application {
     }
 
     /**
-     * Aplica desenfoque al fondo cuando el menú lateral o un modal se activa.
+     * Cambia la vista principal y guarda la vista anterior en el historial.
      */
+    public static void setView(Node nuevaVista) {
+        if (mainLayout != null) {
+            // Si ya hay una vista en el centro, la guardamos en el historial
+            if (mainLayout.getCenter() != null) {
+                historialVistas.push(mainLayout.getCenter());
+            }
+            mainLayout.setCenter(nuevaVista);
+        }
+    }
+
+    /**
+     * Regresa a la vista anterior si existe en el historial.
+     */
+    public static void back() {
+        if (!historialVistas.isEmpty()) {
+            Node vistaAnterior = historialVistas.pop();
+            // Usamos el método directo de BorderPane para no volver a pushear al historial
+            mainLayout.setCenter(vistaAnterior);
+        } else {
+            // Si el historial está vacío, podemos decidir ir al Inicio por defecto
+            mainLayout.setCenter(new Inicio());
+        }
+    }
+
     public static void aplicarEfectoBlur(boolean activar) {
         if (activar) {
             mainLayout.setEffect(new javafx.scene.effect.BoxBlur(10, 10, 3));
         } else {
             mainLayout.setEffect(null);
-        }
-    }
-
-    /**
-     * Cambia la vista principal sin afectar la Navbar superior.
-     * Esto mantiene la fluidez de la línea animada de navegación.
-     */
-    public static void setView(Node nuevaVista) {
-        if (mainLayout != null) {
-            mainLayout.setCenter(nuevaVista);
         }
     }
 

@@ -276,7 +276,7 @@ public class Menu extends VBox {
         switch (destino) {
             case "Inicio"          -> MainApp.setView(new Inicio());
             case "Explorar"        -> MainApp.setView(new Catalogo());
-            case "AgregarProyecto" -> MainApp.setView(placeholder("Agregar Proyecto"));
+            case "AgregarProyecto" -> MainApp.setView(new SubirProyecto());
             case "Categorias"      -> MainApp.setView(new Categorias());
             case "Guardados"       -> MainApp.setView(new Guardados());
             case "Usuarios"        -> MainApp.setView(new GestionUsuarios());
