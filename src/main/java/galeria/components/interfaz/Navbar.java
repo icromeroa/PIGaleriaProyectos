@@ -1,6 +1,7 @@
 package galeria.components.interfaz;
 
 import galeria.app.MainApp;
+import galeria.components.views.SobreNosotras;
 import galeria.util.Animations;
 import galeria.util.Sesion;
 import galeria.components.views.Inicio;
@@ -101,6 +102,7 @@ public class Navbar extends HBox {
             Node vista = switch (text) {
                 case "Inicio" -> new Inicio();
                 case "Explorar Catálogo" -> new Catalogo();
+                case "Sobre Nosotras" -> new SobreNosotras();
                 default -> null; // Sobre Nosotras u otros
             };
             // Llamamos a navegar (se ejecutará la animación aunque vista sea null)
