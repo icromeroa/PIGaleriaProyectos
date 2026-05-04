@@ -212,4 +212,13 @@ public class Navbar extends HBox {
         loginBtn.setOnAction(e -> MainApp.setView(new Login()));
         return loginBtn;
     }
+
+    public void desactivarTodo() {
+        if (activeLabel != null) {
+            activeLabel.setTextFill(Color.web("#4b5563")); // Color gris original
+            Animations.lineShrink(activeLine); // Encoger la línea azul
+            activeLabel = null;
+            activeLine = null;
+        }
+    }
 }

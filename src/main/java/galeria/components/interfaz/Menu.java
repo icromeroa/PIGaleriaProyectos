@@ -273,6 +273,12 @@ public class Menu extends VBox {
     // ── Navegación ────────────────────────────────────────
 // ── Navegación ────────────────────────────────────────
     private void navegar(String destino) {
+        // 1. Desactivar la selección visual en el Navbar
+        if (MainApp.getNavbar() != null) {
+            MainApp.getNavbar().desactivarTodo();
+        }
+
+        // 2. Ejecutar la navegación normal
         switch (destino) {
             case "Inicio"          -> MainApp.setView(new Inicio());
             case "Explorar"        -> MainApp.setView(new Catalogo());
@@ -280,17 +286,10 @@ public class Menu extends VBox {
             case "Categorias"      -> MainApp.setView(new Categorias());
             case "Guardados"       -> MainApp.setView(new Guardados());
             case "Usuarios"        -> MainApp.setView(new GestionUsuarios());
-
-            // CAMBIA ESTA LÍNEA:
             case "Perfil"          -> {
                 Usuario u = Sesion.getUsuario();
-                if (u != null) {
-                    MainApp.setView(new Perfil(u));
-                } else {
-                    // Opcional: si por alguna razón no hay sesión,
-                    // puedes mandarlo al inicio o al login
-                    MainApp.setView(new Inicio());
-                }
+                if (u != null) MainApp.setView(new Perfil(u));
+                else MainApp.setView(new Inicio());
             }
         }
     }

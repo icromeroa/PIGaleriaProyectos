@@ -20,6 +20,7 @@ public class SobreNosotras extends ScrollPane {
     private final String COLOR_TEXTO_DESC = "#64748B";
     private final String FONDO_LIGERO = "#F8FAFC";
     private final String GITHUB_URL = "https://github.com/icromeroa/PIGaleriaProyectos.git";
+    private Label lblNumP;
 
     public SobreNosotras() {
         this.setFitToWidth(true);
@@ -31,17 +32,15 @@ public class SobreNosotras extends ScrollPane {
         mainContainer.setStyle("-fx-background-color: white;");
 
         // --- SECCIONES ---
-        VBox hero = crearHero();
+        VBox hero = crearHero(); // Aquí ya se disparan sus animaciones internas
         VBox equipo = crearSeccionEquipo();
         VBox especificaciones = crearSeccionEspecificaciones();
 
         mainContainer.getChildren().addAll(hero, equipo, especificaciones);
         this.setContent(mainContainer);
 
-        // --- ANIMACIONES DE ENTRADA INMEDIATA ---
-        Animations.slideUpFadeIn(hero, 0);
-
-        // Animamos solo el encabezado del equipo (título y descripción) de inmediato
+        // --- ANIMACIONES DE ENTRADA RESTANTES ---
+        // Animamos el encabezado del equipo (título y descripción)
         VBox textosEquipo = (VBox) equipo.getChildren().get(0);
         Animations.slideUpFadeIn(textosEquipo, 200);
     }
@@ -66,21 +65,23 @@ public class SobreNosotras extends ScrollPane {
         hbStats.setPadding(new Insets(20, 0, 0, 0));
 
         VBox statProyectos = new VBox(-5);
-        Label lblNumP = new Label("0");
+        lblNumP = new Label("0");
         lblNumP.setStyle("-fx-font-size: 36; -fx-font-weight: 900; -fx-text-fill: " + COLOR_AZUL + ";");
         Label lblTxtP = new Label("Proyectos");
         lblTxtP.setStyle("-fx-font-size: 14; -fx-text-fill: " + COLOR_TEXTO_DESC + ";");
         statProyectos.getChildren().addAll(lblNumP, lblTxtP);
 
-        // Animación de conteo al hacer scroll sobre los números
-        Animations.animateOnScroll(lblNumP, this, () ->
-                Animations.animarConteo(lblNumP, new ProyectoDAO().getEstadisticasGenerales()[1], "-fx-font-size: 36; -fx-font-weight: 900; -fx-text-fill: " + COLOR_AZUL + ";")
-        );
-
         VBox statDigital = crearStatSimple("100%", "Digital", COLOR_NARANJA);
         hbStats.getChildren().addAll(statProyectos, statDigital);
 
         hero.getChildren().addAll(lblTag, lblTitulo, lblDesc, hbStats);
+
+        // --- ANIMACIÓN INMEDIATA DENTRO DEL MÉTODO ---
+        // Al estar aquí, las variables lblTag, lblTitulo, etc., sí son reconocidas.
+        Animations.slideUpFadeIn(hero, 0);
+        Animations.animarConteo(lblNumP, new ProyectoDAO().getEstadisticasGenerales()[1],
+                "-fx-font-size: 36; -fx-font-weight: 900; -fx-text-fill: " + COLOR_AZUL + ";");
+
         return hero;
     }
 
