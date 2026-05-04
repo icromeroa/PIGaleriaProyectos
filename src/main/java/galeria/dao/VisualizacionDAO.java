@@ -58,4 +58,16 @@ public class VisualizacionDAO {
             System.out.println("Error al registrar visualización: " + e.getMessage());
         }
     }
+
+    public int contarTotalVistasUsuario(int idUsuario) {
+        String sql = "SELECT COUNT(*) FROM registro_visualizaciones WHERE id_usuario = ?";
+        try (Connection con = conexion.conectar();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idUsuario);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return 0;
+    }
 }

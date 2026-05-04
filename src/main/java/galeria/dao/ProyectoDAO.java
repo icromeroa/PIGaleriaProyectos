@@ -352,4 +352,27 @@ public class ProyectoDAO {
         return p;
     }
 
+    public int contarPublicacionesPorCorreo(String correoUsuario) {
+        // Esta consulta une las tablas para encontrar proyectos del autor con ese correo
+        String sql = "SELECT COUNT(pa.id_proyecto) " +
+                "FROM proyecto_autores pa " +
+                "JOIN autores a ON pa.id_autor = a.id_autor " +
+                "WHERE a.correo = ?";
+
+        try (Connection con = conexion.conectar();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, correoUsuario);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al contar publicaciones: " + e.getMessage());
+        }
+        return 0;
+    }
+
 }
