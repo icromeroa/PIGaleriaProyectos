@@ -280,20 +280,24 @@ public class ProyectoDAO {
     }
 
     // Filtrar por programa, materia, semestre, categoria (cualquier combinacion)
-    public List<Proyecto> filtrar(Integer idPrograma, Integer idMateria,
+    public List<Proyecto> filtrar(Integer idFacultad, Integer idPrograma, Integer idMateria,
                                   Integer idSemestre, Integer idCategoria) {
         List<Proyecto> lista = new ArrayList<>();
         StringBuilder sql = new StringBuilder("""
-        SELECT p.*, a.nombre_autor
-        FROM proyectos p
-        LEFT JOIN proyecto_autores pa ON p.id_proyecto = pa.id_proyecto
-        LEFT JOIN autores a ON pa.id_autor = a.id_autor
-        WHERE 1=1
-        """);
+    SELECT p.*, a.nombre_autor
+    FROM proyectos p
+    LEFT JOIN proyecto_autores pa ON p.id_proyecto = pa.id_proyecto
+    LEFT JOIN autores a ON pa.id_autor = a.id_autor
+    LEFT JOIN programas pr ON p.id_programa = pr.id_programa
+    WHERE 1=1
+    """);
+
+        if (idFacultad  != null) sql.append(" AND pr.id_facultad = ").append(idFacultad);
         if (idPrograma  != null) sql.append(" AND p.id_programa = ").append(idPrograma);
         if (idMateria   != null) sql.append(" AND p.id_materia = ").append(idMateria);
         if (idSemestre  != null) sql.append(" AND p.id_semestre = ").append(idSemestre);
         if (idCategoria != null) sql.append(" AND p.id_categoria = ").append(idCategoria);
+
         sql.append(" ORDER BY p.cantidad_vistas DESC");
 
         try (Connection con = conectar();
@@ -305,6 +309,7 @@ public class ProyectoDAO {
         }
         return lista;
     }
+
 
     // Listar todos con autor incluido
     public List<Proyecto> listarTodosConAutor() {

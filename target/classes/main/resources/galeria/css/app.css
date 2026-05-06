@@ -1,0 +1,166 @@
+/* Registro de las fuentes */
+@font-face {
+    src: url('../fonts/Manrope-Regular.ttf');
+    -fx-font-family: "Manrope";
+}
+@font-face {
+    src: url('../fonts/Manrope-Medium.ttf');
+    -fx-font-family: "Manrope Medium";
+}
+@font-face {
+    src: url('../fonts/Manrope-SemiBold.ttf');
+    -fx-font-family: "Manrope SemiBold";
+}
+@font-face {
+    src: url('../fonts/Manrope-Bold.ttf');
+    -fx-font-family: "Manrope Bold";
+}
+
+/* Aplicación Global */
+.root {
+    -fx-font-family: "Manrope";
+    -fx-background-color: #ffffff;
+}
+
+.scroll-pane {
+    -fx-background-color: #ffffff;
+    -fx-background: #ffffff;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: #ffffff;
+}
+
+.navbar {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 5);
+}
+
+.logo-text {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2937;
+}
+
+.logo-accent {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f97316;
+}
+
+.login-btn {
+    -fx-background-color: #1f2937;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+/* Estilo para el Navbar tipo Vidrio (Glassmorphism) */
+.glass-nav {
+    /* Fondo blanco con 70% de opacidad para que se vea lo de atrás */
+    -fx-background-color: rgba(238, 242, 255, 0.85);
+    -fx-background-radius: 40;
+    -fx-border-color: rgba(255, 255, 255, 0.4);
+    -fx-border-radius: 40;
+    -fx-border-width: 1;
+    /* Sombra muy suave */
+    /*-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 8); */
+}
+
+/* Forzar Manrope en componentes específicos */
+.label, .button {
+    -fx-font-family: "Manrope";
+}
+
+/* Efecto para los links */
+.nav-link {
+    -fx-font-family: "Manrope Medium";
+    -fx-font-size: 15px;
+    -fx-text-fill: #4b5563;
+    -fx-transition: all 0.3s;
+}
+
+.nav-link-active {
+    -fx-font-family: "Manrope Bold";
+    -fx-text-fill: #3F68E4;
+    /* Línea debajo opcional como la imagen 1 */
+    -fx-border-color: transparent transparent #3F68E4 transparent;
+    -fx-border-width: 0 0 2 0;
+}
+
+/* Estilos para EditarProyecto */
+.scroll-pane {
+    -fx-background-color: #F8FAFC;
+    -fx-background: #F8FAFC;
+}
+
+.input-moderno {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #E2E8F0;
+    -fx-border-radius: 10;
+    -fx-padding: 8 12;
+    -fx-font-size: 14;
+    -fx-text-fill: #1E293B;
+}
+
+.input-moderno:focused {
+    -fx-border-color: #3B82F6;
+    -fx-border-width: 2;
+}
+
+.combo-box-moderno {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #E2E8F0;
+    -fx-border-radius: 10;
+}
+
+.combo-box-moderno .list-cell {
+    -fx-text-fill: #1E293B;
+}
+
+.area-moderna {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-color: #E2E8F0;
+    -fx-border-radius: 10;
+    -fx-font-family: "Segoe UI";
+}
+
+.pildora-autor {
+    -fx-background-color: #F1F5F9;
+    -fx-background-radius: 20;
+    -fx-border-color: #E2E8F0;
+    -fx-border-radius: 20;
+}
+
+.boton-guardar {
+    -fx-background-color: #F97316;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.boton-guardar:hover {
+    -fx-background-color: #EA580C;
+}
+
+.boton-cancelar {
+    -fx-background-color: white;
+    -fx-border-color: #E2E8F0;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-text-fill: #64748B;
+    -fx-cursor: hand;
+}
+
+.boton-eliminar {
+    -fx-background-color: transparent;
+    -fx-text-fill: #EF4444;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+

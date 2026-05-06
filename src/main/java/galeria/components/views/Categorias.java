@@ -175,12 +175,14 @@ public class Categorias extends BorderPane {
     private void cargarProyectosPorCategoria(Categoria cat) {
         lblTituloCatalogo.setText("Catálogo de " + cat.getNombreCategoria());
 
-        // Animaciones de entrada para los títulos cada vez que cambian
         Animations.slideUpFadeIn(lblTituloCatalogo, 0);
         Animations.slideUpFadeIn(lblSubtituloCatalogo, 50);
 
         gridProyectos.getChildren().clear();
-        List<Proyecto> proyectos = proyectoDAO.filtrar(null, null, null, cat.getIdCategoria());
+
+        // AGREGA EL NULL ADICIONAL AL INICIO:
+        // Los parámetros son: (Facultad, Programa, Materia, Semestre, Categoría)
+        List<Proyecto> proyectos = proyectoDAO.filtrar(null, null, null, null, cat.getIdCategoria());
 
         if (proyectos.isEmpty()) {
             mostrarMensajeVacio();
