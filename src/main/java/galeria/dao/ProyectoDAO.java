@@ -22,25 +22,43 @@ public class ProyectoDAO {
     // CREATE
     // ════════════════════════════════════════════════
     public void insertarProyecto(Proyecto p) {
+        // 1. La consulta SQL debe incluir TODAS las columnas que quieres guardar
+        String sql = "INSERT INTO proyectos (titulo, resumen, fecha_subida, portada_url, id_categoria, id_facultad, id_programa, id_materia, id_semestre, archivo_url) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        String sql = "INSERT INTO proyectos (id_proyecto, titulo, resumen, fecha_subida) VALUES (?, ?, ?, ?)";
-
-        try (Connection con = conectar();
+        try (Connection con = conexion.conectar();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setInt(1, p.getIdProyecto());
-            ps.setString(2, p.getTitulo());
-            ps.setString(3, p.getResumen());
-            ps.setDate(4, new java.sql.Date(p.getFechaSubida().getTime()));
+            // 2. Mapeo de parámetros (Asegúrate de que el orden coincida con el SQL de arriba)
+            ps.setString(1, p.getTitulo());
+            ps.setString(2, p.getResumen());
+            ps.setDate(3, new java.sql.Date(p.getFechaSubida().getTime()));
 
-            ps.executeUpdate();
-            System.out.println("[BD] Proyecto guardado correctamente");
+            // ESTA ES LA LÍNEA QUE TE FALTA:
+            ps.setString(4, p.getPortadaURL());
+
+            // IDs de las llaves foráneas (si son null, podrías tener errores, por eso validamos)
+            ps.setInt(5, (p.getCategoria() != null) ? p.getCategoria().getIdCategoria() : 1);
+            ps.setInt(6, (p.getFacultad() != null) ? p.getFacultad().getIdFacultad() : 1);
+            ps.setInt(7, (p.getPrograma() != null) ? p.getPrograma().getIdPrograma() : 1);
+            ps.setInt(8, (p.getMateria() != null) ? p.getMateria().getIdMateria() : 1);
+            ps.setInt(9, (p.getSemestre() != null) ? p.getSemestre().getIdSemestre() : 1);
+
+            ps.setString(10, p.getArchivoURL());
+
+            // 3. Ejecutar
+            int filasAfectadas = ps.executeUpdate();
+
+            if (filasAfectadas > 0) {
+                System.out.println("[BD] Proyecto guardado exitosamente con URL: " + p.getPortadaURL());
+            }
 
         } catch (SQLException e) {
-            System.out.println("[ERROR INSERT] " + e.getMessage());
+            // Esto te dirá si el nombre de la columna 'portada_url' está mal escrito
+            System.err.println("[ERROR INSERT] " + e.getMessage());
+            e.printStackTrace();
         }
     }
-
     // ════════════════════════════════════════════════
     // READ (LISTAR)
     // ════════════════════════════════════════════════
@@ -152,23 +170,51 @@ public class ProyectoDAO {
     // ════════════════════════════════════════════════
     // DELETE
     // ════════════════════════════════════════════════
-    public void eliminarProyecto(int id) {
+    public void eliminarProyecto(int idProyecto) {
+        // 1. Añadimos la tabla que causó el error: registro_visualizaciones
+        String sqlVisualizaciones = "DELETE FROM registro_visualizaciones WHERE id_proyecto = ?";
+        String sqlAutores = "DELETE FROM proyecto_autores WHERE id_proyecto = ?";
+        String sqlValoraciones = "DELETE FROM valoraciones WHERE id_proyecto = ?";
+        String sqlGuardados = "DELETE FROM guardados WHERE id_proyecto = ?";
+        String sqlProyecto = "DELETE FROM proyectos WHERE id_proyecto = ?";
 
-        String sql = "DELETE FROM proyectos WHERE id_proyecto = ?";
+        try (Connection con = conectar()) {
+            con.setAutoCommit(false); // Transacción para seguridad
 
-        try (Connection con = conectar();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+            try (PreparedStatement psVis = con.prepareStatement(sqlVisualizaciones);
+                 PreparedStatement psAut = con.prepareStatement(sqlAutores);
+                 PreparedStatement psVal = con.prepareStatement(sqlValoraciones);
+                 PreparedStatement psGua = con.prepareStatement(sqlGuardados);
+                 PreparedStatement psPro = con.prepareStatement(sqlProyecto)) {
 
-            ps.setInt(1, id);
+                // BORRAR EN ORDEN (De las tablas hijas a la tabla padre)
+                psVis.setInt(1, idProyecto);
+                psVis.executeUpdate();
 
-            ps.executeUpdate();
-            System.out.println("[BD] Proyecto eliminado");
+                psAut.setInt(1, idProyecto);
+                psAut.executeUpdate();
 
+                psVal.setInt(1, idProyecto);
+                psVal.executeUpdate();
+
+                psGua.setInt(1, idProyecto);
+                psGua.executeUpdate();
+
+                // Finalmente el proyecto
+                psPro.setInt(1, idProyecto);
+                int filas = psPro.executeUpdate();
+
+                con.commit();
+                System.out.println("[BD] Éxito: Proyecto e historial de vistas eliminados.");
+
+            } catch (SQLException e) {
+                con.rollback();
+                System.err.println("[ERROR EN TRANSACCIÓN] " + e.getMessage());
+            }
         } catch (SQLException e) {
-            System.out.println("[ERROR DELETE] " + e.getMessage());
+            System.err.println("[ERROR CONEXIÓN] " + e.getMessage());
         }
     }
-
     // ════════════════════════════════════════════════
     // GENERAR ID AUTOMÁTICO
     // ════════════════════════════════════════════════
@@ -379,5 +425,6 @@ public class ProyectoDAO {
         }
         return 0;
     }
+
 
 }

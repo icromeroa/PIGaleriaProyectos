@@ -4,6 +4,7 @@ import galeria.app.MainApp;
 import galeria.dao.*;
 import galeria.model.*;
 import galeria.util.Animations;
+import galeria.util.CloudinaryService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -13,10 +14,14 @@ import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
 import org.kordamp.ikonli.javafx.FontIcon;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SubirProyecto extends ScrollPane {
+
+    private File archivoImagenSeleccionado; // Para la portada
+    private File archivoDocumentoSeleccionado; // Para el PDF/ZIP
 
     // Estilos constantes según requerimiento
     private final String RELLENO_INPUT = "-fx-background-color: #F1F3FC;";
@@ -228,7 +233,7 @@ public class SubirProyecto extends ScrollPane {
 
         HBox multimedia = new HBox(30);
 
-        // --- PORTADA (RESTAURADO) ---
+        // --- PORTADA ---
         VBox colPortada = new VBox(10);
         Label lblP = new Label("Portada del Proyecto");
         lblP.setStyle("-fx-font-weight: bold; -fx-font-family: 'Manrope';");
@@ -236,6 +241,7 @@ public class SubirProyecto extends ScrollPane {
         VBox previsualizacion = new VBox(10);
         previsualizacion.setAlignment(Pos.CENTER);
         previsualizacion.setPrefSize(220, 180);
+        previsualizacion.setCursor(Cursor.HAND);
         previsualizacion.setStyle("-fx-background-color: #94A3B8; -fx-background-radius: 15;");
 
         FontIcon iconImg = new FontIcon("fas-image");
@@ -246,9 +252,22 @@ public class SubirProyecto extends ScrollPane {
         lblInfo.setStyle("-fx-text-fill: #334155; -fx-font-size: 11px; -fx-font-family: 'Manrope';");
 
         previsualizacion.getChildren().addAll(iconImg, lblClick, lblInfo);
+
+        previsualizacion.setOnMouseClicked(e -> {
+            javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+            fileChooser.setTitle("Seleccionar Portada");
+            fileChooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Imágenes", "*.png", "*.jpg", "*.jpeg"));
+            File file = fileChooser.showOpenDialog(this.getScene().getWindow());
+            if (file != null) {
+                archivoImagenSeleccionado = file;
+                lblClick.setText(file.getName());
+                previsualizacion.setStyle("-fx-background-color: #3F68E4; -fx-background-radius: 15;");
+            }
+        });
+
         colPortada.getChildren().addAll(lblP, previsualizacion);
 
-        // --- ARCHIVOS (RESTAURADO) ---
+        // --- ARCHIVOS (FUNCIONAL) ---
         VBox colArchivos = new VBox(10);
         HBox.setHgrow(colArchivos, Priority.ALWAYS);
         Label lblA = new Label("Archivos (PDF, DOCX, ZIP)");
@@ -257,31 +276,42 @@ public class SubirProyecto extends ScrollPane {
         VBox dropZone = new VBox(10);
         dropZone.setAlignment(Pos.CENTER);
         dropZone.setPrefHeight(180);
-        dropZone.setStyle("-fx-background-color: #F1F3FC; " +
-                "-fx-background-radius: 15; " +    // <--- ESTO REDONDEA EL FONDO
-                "-fx-border-color: #C1C6D5; " +
-                "-fx-border-style: dashed; " +
-                "-fx-border-width: 2; " +
-                "-fx-border-radius: 15;");         // <--- ESTO REDONDEA EL BORDE
+        dropZone.setCursor(Cursor.HAND);
+        String estiloDropBase = "-fx-background-color: #F1F3FC; -fx-background-radius: 15; -fx-border-color: #C1C6D5; -fx-border-style: dashed; -fx-border-width: 2; -fx-border-radius: 15;";
+        dropZone.setStyle(estiloDropBase);
 
         FontIcon iconCloud = new FontIcon("fas-cloud-upload-alt");
         iconCloud.setIconSize(30); iconCloud.setIconColor(Color.web("#3B82F6"));
-        Label lblDropT = new Label("Arrastra y suelta tus archivos aquí");
+        Label lblDropT = new Label("Haz clic para explorar archivos");
         lblDropT.setStyle("-fx-font-weight: bold; -fx-font-family: 'Manrope';");
-        Label lblDropS = new Label("o haz clic para explorar en tu equipo");
+        Label lblDropS = new Label("Formatos permitidos: PDF, ZIP, RAR, DOCX");
         lblDropS.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 12px; -fx-font-family: 'Manrope';");
 
         dropZone.getChildren().addAll(iconCloud, lblDropT, lblDropS);
-        colArchivos.getChildren().addAll(lblA, dropZone);
 
+        // Evento para el archivo del proyecto
+        dropZone.setOnMouseClicked(e -> {
+            javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+            fileChooser.setTitle("Seleccionar Archivo del Proyecto");
+            fileChooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Documentos y Comprimidos", "*.pdf", "*.zip", "*.rar", "*.docx"));
+            File file = fileChooser.showOpenDialog(this.getScene().getWindow());
+            if (file != null) {
+                archivoDocumentoSeleccionado = file;
+                lblDropT.setText("Archivo: " + file.getName());
+                iconCloud.setIconCode(org.kordamp.ikonli.fontawesome5.FontAwesomeSolid.CHECK_CIRCLE);
+                iconCloud.setIconColor(Color.web("#10B981")); // Verde éxito
+                dropZone.setStyle(estiloDropBase + "-fx-background-color: #ECFDF5;");
+            }
+        });
+
+        colArchivos.getChildren().addAll(lblA, dropZone);
         multimedia.getChildren().addAll(colPortada, colArchivos);
 
-        // --- LINK EXTERNO (RESTAURADO) ---
+        // --- LINK EXTERNO ---
         VBox linkBox = new VBox(10);
         linkBox.setPadding(new Insets(20, 0, 0, 0));
         Separator sep = new Separator();
-
-        Label lblLinkTitle = new Label("Link del proyecto");
+        Label lblLinkTitle = new Label("Link del proyecto (Opcional)");
         lblLinkTitle.setStyle("-fx-font-weight: bold; -fx-font-family: 'Manrope';");
 
         HBox linkInputCont = new HBox(10);
@@ -297,11 +327,7 @@ public class SubirProyecto extends ScrollPane {
         HBox.setHgrow(txtLink, Priority.ALWAYS);
         linkInputCont.getChildren().addAll(linkIcon, txtLink);
 
-        Label lblLinkDesc = new Label("Si tu proyecto está alojado en una plataforma externa, pega aquí el enlace. Puedes incluir repositorios de GitHub, despliegues en vivo o carpetas compartidas.");
-        lblLinkDesc.setWrapText(true);
-        lblLinkDesc.setStyle("-fx-text-fill: #64748B; -fx-font-size: 12px; -fx-font-family: 'Manrope';");
-
-        linkBox.getChildren().addAll(sep, lblLinkTitle, linkInputCont, lblLinkDesc);
+        linkBox.getChildren().addAll(sep, lblLinkTitle, linkInputCont);
 
         cont.getChildren().addAll(tituloSec, multimedia, linkBox);
         return cont;
@@ -390,10 +416,34 @@ public class SubirProyecto extends ScrollPane {
     }
 
     private void guardarProyecto() {
+        // Validaciones básicas
+        if (txtTitulo.getText().isEmpty() || cbCategoria.getValue() == null) {
+            new Alert(Alert.AlertType.WARNING, "Por favor completa el título y la categoría.").show();
+            return;
+        }
+
         Proyecto p = new Proyecto();
         p.setTitulo(txtTitulo.getText());
         p.setResumen(txtResumen.getText());
-        p.setArchivoURL(txtLink.getText());
+
+        // 1. Subida de Portada
+        if (archivoImagenSeleccionado != null) {
+            String urlNube = CloudinaryService.subirImagen(archivoImagenSeleccionado);
+            p.setPortadaURL(urlNube);
+            System.out.println("DEBUG: URL que se enviará al DAO: " + urlNube);
+        } else {
+            p.setPortadaURL("/galeria/images/p1.jpg");
+        }
+
+        // 2. Manejo de Archivo vs Link
+        // Si el usuario subió un archivo, lo priorizamos (podrías subirlo a Drive/Cloudinary según tu lógica)
+        if (archivoDocumentoSeleccionado != null) {
+            // Aquí podrías implementar CloudinaryService.subirArchivo() si lo deseas
+            p.setArchivoURL("Archivo: " + archivoDocumentoSeleccionado.getName());
+        } else {
+            p.setArchivoURL(txtLink.getText());
+        }
+
         p.setCategoria(cbCategoria.getValue());
         p.setFacultad(cbFacultad.getValue());
         p.setPrograma(cbPrograma.getValue());
@@ -401,12 +451,12 @@ public class SubirProyecto extends ScrollPane {
         p.setSemestre(cbSemestre.getValue());
         p.setListaAutores(new ArrayList<>(listaAutores));
         p.setFechaSubida(new java.util.Date());
-        p.setPortadaURL("/galeria/images/p1.jpg");
 
         new ProyectoDAO().insertarProyecto(p);
 
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Proyecto registrado con éxito.");
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "¡Proyecto '" + p.getTitulo() + "' registrado con éxito!");
         alert.showAndWait();
         MainApp.back();
     }
+
 }
