@@ -25,7 +25,9 @@ public class Catalogo extends ScrollPane {
     private final MateriaDAO materiaDAO = new MateriaDAO();
     private final SemestreDAO semestreDAO = new SemestreDAO();
     private final CategoriaDAO categoriaDAO = new CategoriaDAO();
+    private final FacultadDAO facultadDAO = new FacultadDAO(); // Integrado
 
+    private Integer filtroFacultad = null; // Nuevo filtro
     private Integer filtroPrograma = null, filtroMateria = null, filtroSemestre = null, filtroCategoria = null;
     private String textoBusqueda = null;
 
@@ -38,7 +40,7 @@ public class Catalogo extends ScrollPane {
         content.setPadding(new Insets(40, 60, 60, 60));
         content.setStyle("-fx-background-color: #ffffff;");
 
-        // ── Encabezado (Manteniendo tu estilo original) ─────────────────
+        // ── Encabezado ────────────────────────────────────────────────
         VBox header = new VBox(10);
         header.setAlignment(Pos.CENTER);
 
@@ -67,27 +69,36 @@ public class Catalogo extends ScrollPane {
         searchIcon.setIconColor(javafx.scene.paint.Color.web("#3F68E4"));
         searchBox.getChildren().addAll(searchIcon, campoSearch);
 
-        // ── Filtros ──────────────────────────────
+        // ── Filtros (Con Facultad Integrada) ──────────────────────────
         HBox filtrosRow = new HBox(15);
         filtrosRow.setAlignment(Pos.CENTER);
 
-        Button btnProg = crearBotonFiltro("Programa", programaDAO.listar().stream().map(p -> new FilterItem(p.getIdPrograma(), p.getNombrePrograma())).collect(Collectors.toList()), "programa");
-        Button btnMat = crearBotonFiltro("Materia", materiaDAO.listar().stream().map(m -> new FilterItem(m.getIdMateria(), m.getNombreMateria())).collect(Collectors.toList()), "materia");
-        Button btnSem = crearBotonFiltro("Semestre", semestreDAO.listar().stream().map(s -> new FilterItem(s.getIdSemestre(), s.getAnio() + "-" + s.getPeriodo())).collect(Collectors.toList()), "semestre");
-        Button btnCat = crearBotonFiltro("Categoría", categoriaDAO.listar().stream().map(c -> new FilterItem(c.getIdCategoria(), c.getNombreCategoria())).collect(Collectors.toList()), "categoria");
+        // Botón de Facultad (Primero en la lista)
+        Button btnFac = crearBotonFiltro("Facultad", facultadDAO.listar().stream()
+                .map(f -> new FilterItem(f.getIdFacultad(), f.getNombreFacultad())).collect(Collectors.toList()), "facultad");
 
-        filtrosRow.getChildren().addAll(btnProg, btnMat, btnSem, btnCat);
+        Button btnProg = crearBotonFiltro("Programa", programaDAO.listar().stream()
+                .map(p -> new FilterItem(p.getIdPrograma(), p.getNombrePrograma())).collect(Collectors.toList()), "programa");
 
-        // ── Grid Configurado para CardProyecto ──────────────────────────
+        Button btnMat = crearBotonFiltro("Materia", materiaDAO.listar().stream()
+                .map(m -> new FilterItem(m.getIdMateria(), m.getNombreMateria())).collect(Collectors.toList()), "materia");
+
+        Button btnSem = crearBotonFiltro("Semestre", semestreDAO.listar().stream()
+                .map(s -> new FilterItem(s.getIdSemestre(), s.getAnio() + "-" + s.getPeriodo())).collect(Collectors.toList()), "semestre");
+
+        Button btnCat = crearBotonFiltro("Categoría", categoriaDAO.listar().stream()
+                .map(c -> new FilterItem(c.getIdCategoria(), c.getNombreCategoria())).collect(Collectors.toList()), "categoria");
+
+        filtrosRow.getChildren().addAll(btnFac, btnProg, btnMat, btnSem, btnCat);
+
+        // ── Grid Configurado ──────────────────────────────────────────
         gridCards.setHgap(25);
         gridCards.setVgap(30);
-        gridCards.setPrefColumns(4); // 4 Columnas
+        gridCards.setPrefColumns(4);
         gridCards.setAlignment(Pos.TOP_CENTER);
-
-        // Ajuste dinámico del ancho de las tiles para que CardProyecto quepa bien
         gridCards.prefTileWidthProperty().bind(gridCards.widthProperty().subtract(150).divide(4));
 
-        // ── Botón Ver Más ─────────────────────────────────
+        // ── Botón Ver Más ─────────────────────────────────────────────
         btnVerMas = new Button("Ver Más Proyectos  ↓");
         btnVerMas.setStyle("-fx-background-color: #3F68E4; -fx-text-fill: white; -fx-font-family: 'Manrope Bold'; -fx-background-radius: 40; -fx-padding: 12 35; -fx-cursor: hand;");
         btnVerMas.setOnAction(e -> {
@@ -95,7 +106,7 @@ public class Catalogo extends ScrollPane {
             renderizarCards();
         });
 
-        // Listeners y Animaciones
+        // Listeners
         campoSearch.textProperty().addListener((obs, old, val) -> {
             textoBusqueda = val;
             limiteActual = 8;
@@ -118,34 +129,24 @@ public class Catalogo extends ScrollPane {
     private void actualizarDatos() {
         if (textoBusqueda != null && !textoBusqueda.isEmpty()) {
             listaFiltrada = proyectoDAO.buscarPorTitulo(textoBusqueda);
-        } else if (filtroPrograma != null || filtroMateria != null || filtroSemestre != null || filtroCategoria != null) {
-            listaFiltrada = proyectoDAO.filtrar(filtroPrograma, filtroMateria, filtroSemestre, filtroCategoria);
+        } else if (filtroFacultad != null || filtroPrograma != null || filtroMateria != null || filtroSemestre != null || filtroCategoria != null) {
+            // Se pasan los 5 parámetros al DAO
+            listaFiltrada = proyectoDAO.filtrar(filtroFacultad, filtroPrograma, filtroMateria, filtroSemestre, filtroCategoria);
         } else {
             listaFiltrada = proyectoDAO.listarTodosConAutor();
         }
         renderizarCards();
     }
 
-    /**
-     * MÉTODO CORREGIDO: Ahora usa CardProyecto
-     */
     private void renderizarCards() {
         gridCards.getChildren().clear();
         int fin = Math.min(limiteActual, listaFiltrada.size());
 
         for (int i = 0; i < fin; i++) {
             Proyecto p = listaFiltrada.get(i);
-
-            // Instanciamos el nuevo CardProyecto reutilizable
-            // Nota: CardStyle es un enum que definiste, aquí usamos uno estándar (ej: LIGHT o SOLID)
             CardProyecto card = new CardProyecto(p, CardStyle.NORMAL);
-
-            // Forzamos un alto mínimo para que el grid se vea uniforme
             card.setMinHeight(280);
-
             gridCards.getChildren().add(card);
-
-            // Animación de entrada
             Animations.revealProjectCard(card, i * 50L);
         }
         btnVerMas.setVisible(limiteActual < listaFiltrada.size());
@@ -182,6 +183,7 @@ public class Catalogo extends ScrollPane {
 
     private void setFiltro(String tipo, Integer id) {
         switch (tipo) {
+            case "facultad" -> filtroFacultad = id;
             case "programa" -> filtroPrograma = id;
             case "materia" -> filtroMateria = id;
             case "semestre" -> filtroSemestre = id;

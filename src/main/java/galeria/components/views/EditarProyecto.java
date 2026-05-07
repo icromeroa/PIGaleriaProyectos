@@ -492,17 +492,23 @@ public class EditarProyecto extends ScrollPane {
     }
 
     private void accionEliminar() {
-        System.out.println("[DEBUG] Confirmando eliminación...");
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "¿Estás seguro de eliminar este proyecto?", ButtonType.YES, ButtonType.NO);
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirmar eliminación");
-        alert.setHeaderText(null);
+        alert.setHeaderText("¿Estás seguro de eliminar este proyecto?");
+        alert.setContentText("Esta acción no se puede deshacer y eliminará autores y valoraciones asociados.");
+
         alert.showAndWait().ifPresent(res -> {
-            if (res == ButtonType.YES) {
-                System.out.println("[DEBUG] Eliminando de DB el Proyecto ID: " + proyectoOriginal.getIdProyecto());
-                proyectoDAO.eliminarProyecto(proyectoOriginal.getIdProyecto());
-                MainApp.setView(new Categorias());
-            } else {
-                System.out.println("[DEBUG] Eliminación cancelada por el usuario.");
+            if (res == ButtonType.OK || res == ButtonType.YES) {
+                try {
+                    // Llamamos al método que acabamos de arreglar
+                    proyectoDAO.eliminarProyecto(proyectoOriginal.getIdProyecto());
+
+                    // IMPORTANTE: Volver al catálogo después de borrar
+                    MainApp.setView(new Catalogo());
+
+                } catch (Exception e) {
+                    System.out.println("[DEBUG] Error al navegar tras eliminar: " + e.getMessage());
+                }
             }
         });
     }

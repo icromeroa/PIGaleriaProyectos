@@ -184,31 +184,49 @@ public class DetalleProyecto extends ScrollPane {
 
         ImageView portada = new ImageView();
         String rutaBD = p.getPortadaURL();
+        Image img = null;
 
-        if (rutaBD != null && !rutaBD.isEmpty()) {
-            try {
-                String ruta = rutaBD.startsWith("/") ? rutaBD : "/" + rutaBD;
-                // Carga robusta mediante Stream para evitar imágenes vacías en navegación interna
-                Image img = new Image(getClass().getResourceAsStream(ruta), imgW, imgH, true, true);
-
-                if (img.isError()) {
-                    img = new Image(getClass().getResource(ruta).toExternalForm(), imgW, imgH, true, true);
-                }
-
-                portada.setImage(img);
-                portada.setFitWidth(imgW);
-                portada.setFitHeight(imgH);
-            } catch (Exception e) {
-                System.out.println("[ERROR IMAGEN DETALLE] " + e.getMessage());
-                marco.setStyle("-fx-background-color: #E2E8F0; -fx-background-radius: 50;");
+        try {
+            // 1. INTENTO: Cloudinary
+            if (rutaBD != null && rutaBD.startsWith("http")) {
+                img = new Image(rutaBD, imgW, imgH, true, true, false);
             }
+            // 2. INTENTO: Recursos Locales
+            else if (rutaBD != null && !rutaBD.isEmpty()) {
+                String ruta = rutaBD.startsWith("/") ? rutaBD : "/" + rutaBD;
+                var resourceStream = getClass().getResourceAsStream(ruta);
+                if (resourceStream != null) {
+                    img = new Image(resourceStream, imgW, imgH, true, true);
+                }
+            }
+
+            // 3. FALLBACK: Imagen por defecto si lo anterior falla
+            if (img == null || img.isError()) {
+                // Asegúrate de que esta ruta sea exacta a tu estructura de carpetas
+                img = new Image(getClass().getResourceAsStream("/galeria/images/PD/p1.jpg"), imgW, imgH, true, true);
+            }
+
+            portada.setImage(img);
+            portada.setFitWidth(imgW);
+            portada.setFitHeight(imgH);
+            portada.setPreserveRatio(false); // Para que llene exactamente los 600x700 que definiste
+
+        } catch (Exception e) {
+            System.err.println("[ERROR IMAGEN DETALLE] " + e.getMessage());
+            marco.setStyle("-fx-background-color: #E2E8F0; -fx-background-radius: 50;");
         }
 
+        // --- AQUÍ ESTÁ LO QUE TE INTERESA: Restauración de bordes y sombras ---
         Rectangle clip = new Rectangle(imgW, imgH);
-        clip.setArcWidth(50); clip.setArcHeight(50);
+        clip.setArcWidth(50); // Tus bordes redondeados
+        clip.setArcHeight(50);
         marco.setClip(clip);
+
         marco.getChildren().add(portada);
+
+        // El efecto de elevación que tenías
         marco.setEffect(new DropShadow(40, Color.rgb(0, 0, 0, 0.12)));
+
         return marco;
     }
 
